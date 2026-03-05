@@ -31,6 +31,24 @@ function saveElectronConfig(data) {
     } catch (e) { console.error('儲存設定失敗:', e); }
 }
 
+// ============================================================
+// 獨立視窗狀態與設定
+// ============================================================
+const viewerWindows = {};
+const viewerData = {};
+
+function saveViewerBounds(id, bounds) {
+    const data = loadElectronConfig();
+    if (!data.viewerBounds) data.viewerBounds = {};
+    data.viewerBounds[id] = bounds;
+    saveElectronConfig({ viewerBounds: data.viewerBounds });
+}
+
+function getViewerBounds(id) {
+    const data = loadElectronConfig();
+    return data.viewerBounds?.[id] || { width: 800, height: 600, center: true };
+}
+
 // 載入設定
 const config = loadElectronConfig();
 savedOpacity = config.opacity ?? 0.9;
@@ -161,13 +179,91 @@ function createWindow() {
     });
 
     // --- IPC：關閉視窗 ---
-    ipcMain.on('close-window', () => {
-        if (mainWindow) mainWindow.close();
+    ipcMain.on('close-window', (event) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win && !win.isDestroyed()) win.close();
     });
 
     // --- IPC：最小化 ---
-    ipcMain.on('minimize-window', () => {
-        if (mainWindow) mainWindow.minimize();
+    ipcMain.on('minimize-window', (event) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win && !win.isDestroyed()) win.minimize();
+    });
+
+    // --- IPC: 獨立視窗 (Viewer) ---
+    ipcMain.on('open-viewer', (event, { id, title, images, hotkeyLabel }) => {
+        viewerData[id] = { images, hotkeyLabel };
+        if (viewerWindows[id] && !viewerWindows[id].isDestroyed()) {
+            viewerWindows[id].focus();
+            viewerWindows[id].webContents.send('update-viewer-data', viewerData[id]);
+            return;
+        }
+
+        const bounds = getViewerBounds(id);
+        const winOpts = {
+            width: bounds.width,
+            height: bounds.height,
+            title: title || 'PoE Helper Viewer',
+            frame: false,
+            backgroundColor: '#121212',
+            webPreferences: {
+                preload: path.join(__dirname, 'preload.cjs'),
+                contextIsolation: true,
+                nodeIntegration: false,
+                webSecurity: false
+            }
+        };
+
+        if (bounds.x !== undefined && bounds.y !== undefined) {
+            winOpts.x = bounds.x;
+            winOpts.y = bounds.y;
+        } else {
+            winOpts.center = true;
+        }
+
+        const win = new BrowserWindow(winOpts);
+        win.setAlwaysOnTop(true, 'screen-saver'); // 跟主視窗一樣置頂
+
+        const url = isDev
+            ? `http://localhost:5173/#viewer?id=${id}`
+            : `file://${path.join(__dirname, '..', 'build', 'index.html')}#viewer?id=${id}`;
+
+        win.loadURL(url);
+
+        win.webContents.once('did-finish-load', () => {
+            win.webContents.send('update-viewer-data', viewerData[id]);
+        });
+
+        let debounceTimer;
+        const saveBounds = () => {
+            if (!win.isDestroyed()) saveViewerBounds(id, win.getBounds());
+        };
+        win.on('resize', () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(saveBounds, 500); });
+        win.on('move', () => { clearTimeout(debounceTimer); debounceTimer = setTimeout(saveBounds, 500); });
+        win.on('closed', () => { delete viewerWindows[id]; });
+
+        viewerWindows[id] = win;
+    });
+
+    ipcMain.on('close-viewer', (event, id) => {
+        if (viewerWindows[id] && !viewerWindows[id].isDestroyed()) {
+            viewerWindows[id].close();
+        }
+    });
+
+    ipcMain.handle('is-viewer-open', (event, id) => {
+        return !!(viewerWindows[id] && !viewerWindows[id].isDestroyed());
+    });
+
+    ipcMain.handle('get-viewer-data', (event, id) => {
+        return viewerData[id] || { images: [], hotkeyLabel: '' };
+    });
+
+    ipcMain.on('update-viewer-data', (event, { id, data }) => {
+        viewerData[id] = { ...viewerData[id], ...data };
+        if (viewerWindows[id] && !viewerWindows[id].isDestroyed()) {
+            viewerWindows[id].webContents.send('update-viewer-data', viewerData[id]);
+        }
     });
 
     // --- IPC：取得透明度 ---

@@ -1,8 +1,8 @@
 {
   "name": "poe-helper-web",
   "private": true,
-  "version": "2.2.0",
-  "description": "Path of Exile 3.28 開荒助手 Pro",
+  "version": "2.3.0",
+  "description": "Path of Exile 開荒助手 Pro",
   "author": "Lucifer",
   "type": "module",
   "main": "electron/main.cjs",

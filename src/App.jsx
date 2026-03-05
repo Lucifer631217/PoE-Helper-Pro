@@ -35,6 +35,8 @@ import { twMerge } from 'tailwind-merge';
 
 function cn(...inputs) { return twMerge(clsx(inputs)); }
 
+import { CheatsheetViewer } from './CheatsheetViewer';
+
 const isElectron = !!(window.electronAPI && window.electronAPI.isElectron);
 
 // ============================================================
@@ -252,69 +254,7 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
     );
 };
 
-// ============================================================
-// 速查表視窗 (Cheatsheet)
-// ============================================================
-const CheatsheetViewer = ({ images, onClose, hotkeyLabel }) => {
-    const [scale, setScale] = useState(1);
-    const [currentIdx, setCurrentIdx] = useState(0);
-
-    const handleWheel = (e) => {
-        setScale(s => Math.min(Math.max(0.1, s - e.deltaY * 0.0015), 10));
-    };
-
-    const srcs = Array.isArray(images) ? images : (images ? [images] : []);
-    if (srcs.length === 0) return null;
-    const currentSrc = srcs[Math.min(currentIdx, srcs.length - 1)];
-
-    const prevImg = () => { setCurrentIdx(i => (i - 1 + srcs.length) % srcs.length); setScale(1); };
-    const nextImg = () => { setCurrentIdx(i => (i + 1) % srcs.length); setScale(1); };
-
-    return (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[100] bg-[#121212] flex flex-col overflow-hidden"
-            onWheel={handleWheel}
-        >
-            <div className="h-8 bg-black/40 flex items-center justify-between px-3 shrink-0 select-none border-b border-white/10" style={{ WebkitAppRegion: 'drag' }}>
-                <div className="flex items-center gap-3" style={{ WebkitAppRegion: 'no-drag' }}>
-                    <div className="flex items-center gap-1.5 px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded text-[10px] font-bold border border-blue-500/30">
-                        <kbd>{hotkeyLabel || 'F9'}</kbd> 隱藏
-                    </div>
-                    {srcs.length > 1 && (
-                        <div className="flex items-center gap-1">
-                            <button onClick={prevImg} className="p-1 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors"><ChevronLeft size={12} /></button>
-                            <span className="text-gray-400 text-[10px] font-bold min-w-[32px] text-center">{currentIdx + 1}/{srcs.length}</span>
-                            <button onClick={nextImg} className="p-1 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors"><ChevronRight size={12} /></button>
-                        </div>
-                    )}
-                    <span className="text-gray-400 text-[10px] font-medium hidden sm:inline">縮放: {Math.round(scale * 100)}% (滾輪) · 拖曳平移</span>
-                    <button onClick={() => setScale(1)} className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors">100%</button>
-                    <button onClick={() => setScale(s => s * 0.5)} className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors">50%</button>
-                </div>
-                <button onClick={onClose} style={{ WebkitAppRegion: 'no-drag' }} className="p-1.5 text-gray-400 hover:text-white rounded-md hover:bg-red-500/80 transition-colors">
-                    <X size={14} />
-                </button>
-            </div>
-
-            <div className="flex-1 relative overflow-hidden flex items-center justify-center bg-[url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCI+CjxyZWN0IHdpZHRoPSIyMCIgaGVpZ2h0PSIyMCIgZmlsbD0ibm9uZSI+PC9yZWN0Pgo8Y2lyY2xlIGN4PSIyIiBjeT0iMiIgcj0iMSIgZmlsbD0iIzMzMyI+PC9jaXJjbGU+Cjwvc3ZnPg==')]" style={{ WebkitAppRegion: 'no-drag' }}>
-                <AnimatePresence mode="wait">
-                    <motion.img
-                        key={currentSrc}
-                        src={currentSrc}
-                        drag
-                        style={{ scale }}
-                        className="max-w-none max-h-none origin-center cursor-move"
-                        draggable={false}
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        exit={{ opacity: 0 }}
-                        transition={{ duration: 0.15 }}
-                    />
-                </AnimatePresence>
-            </div>
-        </motion.div>
-    );
-};
+// 速查表視窗已重構至獨立組件
 
 const GuideEditor = ({ guideData, onSave, onClose, onReset, dark }) => {
     // 將 guide 物件轉為可編輯的文字格式
@@ -587,18 +527,38 @@ const App = () => {
     // --- 速查表快捷鍵 ---
     useEffect(() => {
         if (!isElectron) return;
-        const toggle = () => {
-            setShowCheatsheet(prev => {
-                if (!prev && cheatsheets.length === 0) {
-                    toast('請先至設定選擇速查表圖片');
-                    return false;
-                }
-                return !prev;
-            });
+        const toggle = async () => {
+            if (cheatsheets.length === 0) {
+                toast('請先至設定選擇速查表圖片');
+                return;
+            }
+            const isOpen = await window.electronAPI.isViewerOpen('cheatsheet');
+            if (isOpen) {
+                window.electronAPI.closeViewer('cheatsheet');
+            } else {
+                window.electronAPI.openViewer({ id: 'cheatsheet', title: '速查表', images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
+            }
         };
         window.electronAPI.onToggleCheatsheet(toggle);
         return () => window.electronAPI.offToggleCheatsheet();
-    }, [cheatsheets]);
+    }, [cheatsheets, hotkeys.cheatsheet]);
+
+    // --- 同步資料給已開啟的子視窗 ---
+    useEffect(() => {
+        if (isElectron) {
+            window.electronAPI.isViewerOpen('cheatsheet').then(isOpen => {
+                if (isOpen) window.electronAPI.updateViewerData('cheatsheet', { images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
+            });
+        }
+    }, [cheatsheets, hotkeys.cheatsheet]);
+
+    useEffect(() => {
+        if (isElectron && actImages[currentAct]) {
+            window.electronAPI.isViewerOpen('actMap').then(isOpen => {
+                if (isOpen) window.electronAPI.updateViewerData('actMap', { images: actImages[currentAct], hotkeyLabel: '100%' });
+            });
+        }
+    }, [currentAct, actImages]);
 
     // --- Regex 快捷鍵 ---
     useEffect(() => {
@@ -685,7 +645,7 @@ const App = () => {
                     <div>
                         <h1 className="text-xs font-bold leading-none">
                             {completedTasks}/{totalTasks} ({progressPercent}%)
-                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.2.0</span>
+                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.0</span>
                         </h1>
                         <p className={cn("text-[9px] font-medium", textSecondary)}>{isElectron ? `${hotkeys.toggle} 隱藏` : 'PoE Helper'}</p>
                     </div>
@@ -920,9 +880,18 @@ const App = () => {
                             <h2 className={cn("text-xs font-bold px-2.5 py-0.5 rounded-md truncate", dark ? "bg-blue-500/15 text-blue-400" : "bg-blue-50 text-[#1a73e8]")}>
                                 {currentAct}
                             </h2>
-                            <button onClick={() => {
+                            <button onClick={async () => {
                                 if (actImages[currentAct] && actImages[currentAct].length > 0) {
-                                    setShowActMap(true);
+                                    if (isElectron) {
+                                        const isOpen = await window.electronAPI.isViewerOpen('actMap');
+                                        if (isOpen) {
+                                            window.electronAPI.closeViewer('actMap');
+                                        } else {
+                                            window.electronAPI.openViewer({ id: 'actMap', title: `路線圖 - ${currentAct}`, images: actImages[currentAct], hotkeyLabel: '100%' });
+                                        }
+                                    } else {
+                                        setShowActMap(true);
+                                    }
                                 } else if (isElectron) {
                                     window.electronAPI.selectImages().then(paths => {
                                         if (paths && paths.length > 0) {
@@ -1007,14 +976,14 @@ const App = () => {
 
             {/* ===== 速查表視窗 ===== */}
             <AnimatePresence>
-                {showCheatsheet && (
+                {!isElectron && showCheatsheet && (
                     <CheatsheetViewer images={cheatsheets} onClose={() => setShowCheatsheet(false)} hotkeyLabel={hotkeys.cheatsheet} />
                 )}
             </AnimatePresence>
 
             {/* ===== 路線圖視窗 ===== */}
             <AnimatePresence>
-                {showActMap && (
+                {!isElectron && showActMap && (
                     <CheatsheetViewer images={actImages[currentAct] || []} onClose={() => setShowActMap(false)} hotkeyLabel="100%" />
                 )}
             </AnimatePresence>

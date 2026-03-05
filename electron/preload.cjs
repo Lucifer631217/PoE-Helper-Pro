@@ -37,4 +37,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
     // --- Vendor Regex 熱鍵事件 ---
     onToggleRegex: (callback) => ipcRenderer.on('toggle-regex', (event, ...args) => callback(...args)),
     offToggleRegex: () => ipcRenderer.removeAllListeners('toggle-regex'),
+
+    // --- Viewer Windows ---
+    openViewer: (options) => ipcRenderer.send('open-viewer', options),
+    closeViewer: (id) => ipcRenderer.send('close-viewer', id),
+    isViewerOpen: (id) => ipcRenderer.invoke('is-viewer-open', id),
+    getViewerData: (id) => ipcRenderer.invoke('get-viewer-data', id),
+    updateViewerData: (id, data) => ipcRenderer.send('update-viewer-data', { id, data }),
+    onUpdateViewerData: (callback) => ipcRenderer.on('update-viewer-data', (event, data) => callback(data)),
+    offUpdateViewerData: () => ipcRenderer.removeAllListeners('update-viewer-data'),
 });
