@@ -1,6 +1,7 @@
 const { app, BrowserWindow, globalShortcut, ipcMain, dialog } = require('electron');
 const path = require('path');
 const fs = require('fs');
+const { autoUpdater } = require('electron-updater');
 
 let mainWindow = null;
 let isVisible = true;
@@ -326,7 +327,40 @@ function createWindow() {
     });
 }
 
-app.whenReady().then(createWindow);
+app.whenReady().then(() => {
+    createWindow();
+
+    // 檢查更新
+    if (!isDev) {
+        autoUpdater.checkForUpdatesAndNotify();
+    }
+});
+
+// --- 自動更新事件 ---
+autoUpdater.on('update-available', () => {
+    dialog.showMessageBox({
+        type: 'info',
+        title: '發現新版本',
+        message: '發現新程式版本，正在背景下載更新...',
+    });
+});
+
+autoUpdater.on('update-downloaded', () => {
+    dialog.showMessageBox({
+        type: 'info',
+        title: '更新準備就緒',
+        message: '新版本已下載完成，是否立即重新啟動應用程式以套用更新？',
+        buttons: ['立即重新啟動並安裝', '稍後']
+    }).then((result) => {
+        if (result.response === 0) {
+            autoUpdater.quitAndInstall();
+        }
+    });
+});
+
+autoUpdater.on('error', (err) => {
+    console.error('更新器發生錯誤:', err);
+});
 
 app.on('window-all-closed', () => {
     globalShortcut.unregisterAll();

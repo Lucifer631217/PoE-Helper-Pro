@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -6,16 +6,48 @@ export const CheatsheetViewer = ({ images, onClose, hotkeyLabel }) => {
     const [scale, setScale] = useState(1);
     const [currentIdx, setCurrentIdx] = useState(0);
 
-    const handleWheel = (e) => {
-        setScale(s => Math.min(Math.max(0.1, s - e.deltaY * 0.0015), 10));
-    };
+    // Get the viewer ID from hash if we are in a standalone window, otherwise it's just local modal
+    const viewerId = window.location.hash ? new URLSearchParams(window.location.hash.split('?')[1]).get('id') : 'local';
+
+    // 載入最後記憶的圖片索引
+    useEffect(() => {
+        const saved = localStorage.getItem(`poe_viewer_idx_${viewerId}`);
+        if (saved !== null) {
+            const idx = parseInt(saved, 10);
+            if (!isNaN(idx)) {
+                setCurrentIdx(idx);
+            }
+        }
+    }, [viewerId]);
 
     const srcs = Array.isArray(images) ? images : (images ? [images] : []);
     if (srcs.length === 0) return null;
-    const currentSrc = srcs[Math.min(currentIdx, srcs.length - 1)];
+    const safeIdx = Math.min(currentIdx, srcs.length - 1);
+    const currentSrc = srcs[safeIdx];
 
-    const prevImg = () => { setCurrentIdx(i => (i - 1 + srcs.length) % srcs.length); setScale(1); };
-    const nextImg = () => { setCurrentIdx(i => (i + 1) % srcs.length); setScale(1); };
+    const saveIdx = (newIdx) => {
+        setCurrentIdx(newIdx);
+        localStorage.setItem(`poe_viewer_idx_${viewerId}`, newIdx);
+    };
+
+    const handleWheel = (e) => {
+        if (e.ctrlKey) {
+            // 切換圖片 Ctrl + 滾輪
+            if (e.deltaY > 0) {
+                // 向下滾動 -> 下一張
+                nextImg();
+            } else {
+                // 向上滾動 -> 上一張
+                prevImg();
+            }
+        } else {
+            // 一般縮放
+            setScale(s => Math.min(Math.max(0.1, s - e.deltaY * 0.0015), 10));
+        }
+    };
+
+    const prevImg = () => { saveIdx((safeIdx - 1 + srcs.length) % srcs.length); setScale(1); };
+    const nextImg = () => { saveIdx((safeIdx + 1) % srcs.length); setScale(1); };
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -30,11 +62,11 @@ export const CheatsheetViewer = ({ images, onClose, hotkeyLabel }) => {
                     {srcs.length > 1 && (
                         <div className="flex items-center gap-1">
                             <button onClick={prevImg} className="p-1 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors"><ChevronLeft size={12} /></button>
-                            <span className="text-gray-400 text-[10px] font-bold min-w-[32px] text-center">{currentIdx + 1}/{srcs.length}</span>
+                            <span className="text-gray-400 text-[10px] font-bold min-w-[32px] text-center">{safeIdx + 1}/{srcs.length}</span>
                             <button onClick={nextImg} className="p-1 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors"><ChevronRight size={12} /></button>
                         </div>
                     )}
-                    <span className="text-gray-400 text-[10px] font-medium hidden sm:inline">縮放: {Math.round(scale * 100)}% (滾輪) · 拖曳平移</span>
+                    <span className="text-gray-400 text-[10px] font-medium hidden sm:inline">縮放: {Math.round(scale * 100)}% · 拖曳平移</span>
                     <button onClick={() => setScale(1)} className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors">100%</button>
                     <button onClick={() => setScale(s => s * 0.5)} className="text-[10px] px-1.5 py-0.5 bg-white/10 rounded hover:bg-white/20 text-gray-300 transition-colors">50%</button>
                 </div>
@@ -51,7 +83,7 @@ export const CheatsheetViewer = ({ images, onClose, hotkeyLabel }) => {
                         drag
                         dragMomentum={false}
                         style={{ scale }}
-                        className="max-w-none max-h-none origin-center cursor-move"
+                        className={`origin-center cursor-move ${scale === 1 ? 'max-w-full max-h-full object-contain' : 'max-w-none max-h-none'}`}
                         draggable={false}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

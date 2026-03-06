@@ -270,7 +270,10 @@ const GuideEditor = ({ guideData, onSave, onClose, onReset, dark }) => {
         for (const ch of chapters) {
             const lines = ch.trim().split('\n');
             const title = lines[0].trim();
-            const tasks = lines.slice(1).map(l => l.trim()).filter(Boolean);
+            const tasks = lines.slice(1).map(l => {
+                if (/^\s+/.test(l) || l.trimStart().startsWith('-') || l.trimStart().startsWith('>')) return l.trimEnd();
+                return l.trim();
+            }).filter(Boolean);
             if (title && tasks.length > 0) guide[title] = tasks;
         }
         return guide;
@@ -645,7 +648,7 @@ const App = () => {
                     <div>
                         <h1 className="text-xs font-bold leading-none">
                             {completedTasks}/{totalTasks} ({progressPercent}%)
-                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.0</span>
+                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.1</span>
                         </h1>
                         <p className={cn("text-[9px] font-medium", textSecondary)}>{isElectron ? `${hotkeys.toggle} 隱藏` : 'PoE Helper'}</p>
                     </div>
@@ -933,10 +936,13 @@ const App = () => {
                         <motion.div key={currentAct} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.15 }} className="space-y-1">
                             {currentTasks.map((task, index) => {
                                 const isChecked = !!checkedTasks[`${currentAct}_${task}`];
+                                const isSubTask = /^\s+/.test(task) || task.trimStart().startsWith('-') || task.trimStart().startsWith('>');
+                                const displayTask = task.trimStart();
                                 return (
                                     <motion.div key={`${currentAct}_${index}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.02 }}
                                         whileTap={{ scale: 0.98 }} onClick={() => toggleTask(task)}
                                         className={cn("flex items-start gap-2 px-2.5 py-2 rounded-lg border cursor-pointer group transition-all",
+                                            isSubTask ? "ml-6" : "",
                                             isChecked
                                                 ? dark ? "bg-green-500/10 border-green-500/20" : "bg-green-50/80 border-green-100"
                                                 : dark ? cn(cardBg, "border-transparent hover:border-blue-500/30") : "bg-white border-transparent hover:border-blue-100 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
@@ -949,7 +955,7 @@ const App = () => {
                                         <span style={{ fontSize: `${fontSize}px`, fontFamily: fontFamily, fontWeight: fontWeight }} className={cn("leading-relaxed select-none transition-all",
                                             isChecked ? dark ? "text-gray-600 line-through" : "text-gray-400 line-through" : ""
                                         )}>
-                                            {task}
+                                            {displayTask}
                                         </span>
                                     </motion.div>
                                 );
