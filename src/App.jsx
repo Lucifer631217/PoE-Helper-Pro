@@ -28,7 +28,8 @@ import {
     Timer,
     ListChecks,
     Map,
-    FolderOpen
+    FolderOpen,
+    Eraser
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { clsx } from 'clsx';
@@ -381,10 +382,25 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose, dark }) => {
     useEffect(() => {
         if (!recording) return;
         const handler = (e) => {
+            // 忽略單獨按下控制鍵的情況
+            if (['Control', 'Shift', 'Alt', 'Meta'].includes(e.key)) return;
+
             e.preventDefault();
             e.stopPropagation();
-            const key = e.key === ' ' ? 'Space' : e.key.length === 1 ? e.key.toUpperCase() : e.key;
-            setDraft(prev => ({ ...prev, [recording]: key }));
+
+            const modifiers = [];
+            if (e.ctrlKey || e.metaKey) modifiers.push('CmdOrCtrl');
+            if (e.altKey) modifiers.push('Alt');
+            if (e.shiftKey) modifiers.push('Shift');
+
+            let key = e.key;
+            if (key === ' ') key = 'Space';
+            else if (key.length === 1) key = key.toUpperCase();
+
+            // 組合鍵字串 (例如: CmdOrCtrl+Shift+A)
+            const accelerator = [...modifiers, key].join('+');
+
+            setDraft(prev => ({ ...prev, [recording]: accelerator }));
             setRecording(null);
         };
         window.addEventListener('keydown', handler, true);
@@ -435,6 +451,12 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose, dark }) => {
                                     )}>
                                     {recording === key ? '取消' : '錄入'}
                                 </button>
+                                <button onClick={() => setDraft(prev => ({ ...prev, [key]: '' }))}
+                                    className={cn("p-1.5 rounded-lg transition-colors active:scale-90 opacity-40 hover:opacity-100",
+                                        dark ? "hover:bg-red-500/10 text-red-400" : "hover:bg-red-50 text-red-500"
+                                    )} title="清除快捷鍵">
+                                    <Eraser size={14} />
+                                </button>
                             </div>
                         </div>
                     ))}
@@ -448,7 +470,7 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose, dark }) => {
                     </button>
                 </div>
             </motion.div>
-        </motion.div>
+        </motion.div >
     );
 };
 
@@ -718,7 +740,7 @@ const App = () => {
                     <div>
                         <h1 className="text-xs font-bold leading-none">
                             {completedTasks}/{totalTasks} ({progressPercent}%)
-                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.4</span>
+                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.5</span>
                             {updateStatus === 'downloaded' && (
                                 <span className="ml-1.5 px-1 bg-green-500 text-white rounded-[3px] text-[8px] animate-pulse">UPDATE READY</span>
                             )}
