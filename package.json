@@ -6,7 +6,7 @@
   "author": "Lucifer",
   "repository": {
     "type": "git",
-    "url": "https://github.com/Lucifer631217/poe_helper_web.git"
+    "url": "https://github.com/Lucifer631217/PoE-Helper-Pro.git"
   },
   "type": "module",
   "main": "electron/main.cjs",
@@ -50,7 +50,7 @@
       {
         "provider": "github",
         "owner": "Lucifer631217",
-        "repo": "poe_helper_web"
+        "repo": "PoE-Helper-Pro"
       }
     ],
     "files": [
