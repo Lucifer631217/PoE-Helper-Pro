@@ -512,6 +512,12 @@ const App = () => {
     const [showGuide, setShowGuide] = useState(saved?.showGuide ?? true);
     // 快捷鍵
     const [hotkeys, setHotkeys] = useState({ toggle: 'F10', cheatsheet: 'F9', regex: 'F8', timer: '', prevAct: '', nextAct: '' });
+
+    // --- 更新狀態 ---
+    const [updateStatus, setUpdateStatus] = useState(null); // 'available' | 'downloading' | 'downloaded' | 'error'
+    const [updateVersion, setUpdateVersion] = useState('');
+    const [updateProgress, setUpdateProgress] = useState(0);
+
     const acts = Object.keys(guideData);
     const safeActIdx = actIdx < acts.length ? actIdx : 0;
     const currentAct = acts[safeActIdx];
@@ -603,6 +609,37 @@ const App = () => {
         return () => window.electronAPI.offHotkeysChanged();
     }, []);
 
+    // --- 監聽更新事件 ---
+    useEffect(() => {
+        if (!isElectron) return;
+
+        window.electronAPI.onUpdateAvailable((version) => {
+            setUpdateStatus('available');
+            setUpdateVersion(version);
+            toast(`發現新版本 v${version}，正在背景下載...`);
+        });
+
+        window.electronAPI.onUpdateProgress((percent) => {
+            setUpdateStatus('downloading');
+            setUpdateProgress(percent);
+        });
+
+        window.electronAPI.onUpdateDownloaded((version) => {
+            setUpdateStatus('downloaded');
+            setUpdateVersion(version);
+            setUpdateProgress(100);
+            toast(`新版本 v${version} 已下載完成！`);
+        });
+
+        window.electronAPI.onUpdateError((msg) => {
+            setUpdateStatus('error');
+            setTimeout(() => setUpdateStatus(null), 5000);
+            toast(`更新失敗: ${msg}`);
+        });
+
+        return () => window.electronAPI.offUpdateEvents();
+    }, []);
+
     const fmt = (ms) => {
         const t = Math.floor(ms / 1000), h = Math.floor(t / 3600), m = Math.floor((t % 3600) / 60), s = t % 60;
         return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
@@ -682,8 +719,15 @@ const App = () => {
                         <h1 className="text-xs font-bold leading-none">
                             {completedTasks}/{totalTasks} ({progressPercent}%)
                             <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.3</span>
+                            {updateStatus === 'downloaded' && (
+                                <span className="ml-1.5 px-1 bg-green-500 text-white rounded-[3px] text-[8px] animate-pulse">UPDATE READY</span>
+                            )}
                         </h1>
-                        <p className={cn("text-[9px] font-medium", textSecondary)}>{isElectron ? `${hotkeys.toggle} 隱藏` : 'PoE Helper'}</p>
+                        <p className={cn("text-[9px] font-medium", textSecondary)}>
+                            {updateStatus === 'downloading'
+                                ? `正在下載更新: ${Math.round(updateProgress)}%`
+                                : isElectron ? `${hotkeys.toggle} 隱藏` : 'PoE Helper'}
+                        </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-0.5" style={{ WebkitAppRegion: 'no-drag' }}>
@@ -699,6 +743,15 @@ const App = () => {
                     </>)}
                 </div>
             </header>
+
+            {/* 更新進度條 */}
+            <AnimatePresence>
+                {updateStatus === 'downloading' && (
+                    <motion.div initial={{ height: 0 }} animate={{ height: 2 }} exit={{ height: 0 }} className="bg-blue-500/20 w-full overflow-hidden shrink-0">
+                        <motion.div className="h-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${updateProgress}%` }} />
+                    </motion.div>
+                )}
+            </AnimatePresence>
 
             {/* ===== 設定面板 ===== */}
             <AnimatePresence>
@@ -882,12 +935,25 @@ const App = () => {
                                     {isElectron ? `⌨️ ${hotkeys.regex} Regex · ${hotkeys.cheatsheet} 速查表 · ${hotkeys.toggle} 隱藏` : '💡 Electron 版支援視窗置頂與快捷鍵'}
                                 </div>
                                 {isElectron && (
-                                    <button onClick={() => window.electronAPI.openImagesFolder()}
-                                        className={cn("px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 shrink-0 flex items-center gap-1.5",
-                                            dark ? "bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600" : "bg-gray-100 text-[#5f6368] hover:bg-gray-200"
-                                        )} title="開啟圖片儲存目錄尋找/刪除圖片">
-                                        <FolderOpen size={12} /><span>圖片目錄</span>
-                                    </button>
+                                    <div className="flex gap-1 shrink-0">
+                                        <button onClick={() => {
+                                            window.electronAPI.checkForUpdates();
+                                            toast('正在檢查更新...');
+                                            setUpdateStatus('checking');
+                                            setTimeout(() => { if (updateStatus === 'checking') setUpdateStatus(null); }, 10000);
+                                        }}
+                                            className={cn("px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 flex items-center gap-1.5",
+                                                dark ? "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20" : "bg-blue-50 text-blue-600 hover:bg-blue-100"
+                                            )} title="立刻檢查有無新版本">
+                                            檢查更新
+                                        </button>
+                                        <button onClick={() => window.electronAPI.openImagesFolder()}
+                                            className={cn("px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 flex items-center gap-1.5",
+                                                dark ? "bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600" : "bg-gray-100 text-[#5f6368] hover:bg-gray-200"
+                                            )} title="開啟圖片儲存目錄尋找/刪除圖片">
+                                            <FolderOpen size={12} /><span>圖片目錄</span>
+                                        </button>
+                                    </div>
                                 )}
                             </div>
                         </div>

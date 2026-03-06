@@ -3,6 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
+// 設定自動下載為 true
+autoUpdater.autoDownload = true;
+
 let mainWindow = null;
 let isVisible = true;
 let savedOpacity = 0.9;
@@ -427,19 +430,35 @@ app.whenReady().then(() => {
 });
 
 // --- 自動更新事件 ---
-autoUpdater.on('update-available', () => {
+autoUpdater.on('update-available', (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-available', info.version);
+    }
+    // 移除原本會中斷操作的 dialog，改由前端顯示
+    /*
     dialog.showMessageBox({
         type: 'info',
         title: '發現新版本',
         message: '發現新程式版本，正在背景下載更新...',
     });
+    */
 });
 
-autoUpdater.on('update-downloaded', () => {
+autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-download-progress', progressObj.percent);
+    }
+});
+
+autoUpdater.on('update-downloaded', (info) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-downloaded', info.version);
+    }
+
     dialog.showMessageBox({
         type: 'info',
         title: '更新準備就緒',
-        message: '新版本已下載完成，是否立即重新啟動應用程式以套用更新？',
+        message: `新版本 v${info.version} 已下載完成，是否立即重新啟動應用程式以套用更新？`,
         buttons: ['立即重新啟動並安裝', '稍後']
     }).then((result) => {
         if (result.response === 0) {
@@ -450,6 +469,16 @@ autoUpdater.on('update-downloaded', () => {
 
 autoUpdater.on('error', (err) => {
     console.error('更新器發生錯誤:', err);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('update-error', err.message);
+    }
+});
+
+// 手動檢查更新
+ipcMain.on('check-for-updates', () => {
+    if (!isDev) {
+        autoUpdater.checkForUpdatesAndNotify();
+    }
 });
 
 app.on('window-all-closed', () => {
