@@ -20,6 +20,7 @@ import {
     Save,
     Undo2,
     Image as ImageIcon,
+    ImagePlus,
     Search,
     Plus,
     Trash2,
@@ -27,7 +28,6 @@ import {
     Keyboard,
     Timer,
     ListChecks,
-    Map,
     FolderOpen,
     Eraser
 } from 'lucide-react';
@@ -142,15 +142,128 @@ const DEFAULT_GUIDE = {
     ]
 };
 
+const POE2_GUIDE = {
+    "PoE2 第一章：皆伐 (Clearfell)": [
+        "● 河岸：出生地，擊敗磨坊主後進入皆伐營地",
+        "● 皆伐：擊敗腐貝伊拉 (獎勵：+10% 冰冷抗性)",
+        "● 格瑞爾林：找到烏娜，推進永恆墓地劇情",
+        "● 永恆墓地：收集鑰匙，擊敗拉赫蘭 (獎勵：暗金戒指)",
+        "● 獵場：擊敗 Crowbell (獎勵：+2 天賦點)",
+        "  ● 獵場：完成儀式 (獎勵：+30 精魂)",
+        "● 奧格姆農地：找到烏娜的魯特琴並回報 (獎勵：+2 天賦點)",
+        "● 奧格姆村莊：收集工具給倫利，解鎖回收台",
+        "● 奧格姆宅邸：擊敗章節最終 BOSS 存活儀式 (獎勵：+20 最大生命)"
+    ],
+    "PoE2 第二章：瓦斯提里 (Vastiri)": [
+        "● 凱斯：擊敗 Kabala (獎勵：+2 天賦點)",
+        "● 骨坑與凱斯：收集兩個聖物，回泰坦之谷祭壇選擇 Buff",
+        "● 德夏：找到最後的一封信 (獎勵：+2 天賦點)",
+        "● 德夏之尖：觸碰加魯汗祭壇 (獎勵：+10% 閃電抗性)",
+        "● 失落之城：擊敗黃金甲蟲可獲得珠寶",
+        "● 背叛者通道：探索隱藏區域，解鎖昇華職業",
+        "● 塔坦石窟：追蹤劇情並擊敗章節最終 BOSS"
+    ],
+    "PoE2 第三章：阿葛拉特 (Aggorat)": [
+        "● 叢林遺跡：擊敗銀拳 Mighty Silverfist (獎勵：+2 天賦點)",
+        "● 阿扎克沼澤：擊敗沼澤女巫 Ignagduk (獎勵：+30 精魂)",
+        "● 劇毒地窖：找到毒素瓶，交給 NPC 選擇永久 Buff",
+        "● 吉誇尼的機械工廠：擊敗 Blackjaw (獎勵：+10% 火焰抗性)",
+        "● 吉誇尼的聖所：擊敗 Zicoatl，進入第四章"
+    ],
+    "PoE2 第四章：恩加馬卡努伊 (Ngamakanui)": [
+        "● 祖先之跡：完成試煉找希尼寇拉 (獎勵：+2 武器組專屬天賦點)",
+        "● 亡者大廳：完成試煉 (獎勵：屬性與抗性二選一)",
+        "● 廢棄監獄：完成探索任務 (獎勵：30% 藥劑生命/法力回復增加)",
+        "● 阿拉斯塔：敲響晨鐘 (獎勵：3 個富豪石)",
+        "  ● 阿拉斯塔：敲響晚鐘 (獎勵：3 個崇高石)",
+        "● 核心目標：在各島嶼擊敗 BOSS 收集地圖碎片，合成前往終局內容的門票"
+    ],
+    "PoE2 間奏一：霍爾頓的詛咒": [
+        "● 觸發：完成第四章後，回皆伐營地與倫利對話",
+        "● 進入霍爾頓：前往霍爾頓遺址",
+        "● 淨化區域：清理特定被詛咒敵人",
+        "● 擊敗 BOSS：面對凋零者或類似精英 BOSS",
+        "● 關鍵獎勵：+2 天賦點"
+    ],
+    "PoE2 間奏二：被盜的巴里亞": [
+        "● 觸發：在阿杜拉車隊與加爾或夏利對話",
+        "● 追蹤盜賊：前往沙漠新傳點沙塵廢墟",
+        "● 奪回裝置：擊敗盜賊首領，找回裝置部件",
+        "● 修復巴里亞：回車隊將部件放入祭壇",
+        "● 關鍵獎勵：+30 精魂"
+    ],
+    "PoE2 間奏三：多尼亞尼的應變方案": [
+        "● 觸發：在阿葛拉特與多尼亞尼對話",
+        "● 收集能源：前往能源核心，注意高密度怪與電擊傷害",
+        "● 啟動機制：啟動三個開關並清掉怪物攻勢",
+        "● 最終對話：理解異界與地圖系統",
+        "● 關鍵獎勵：解鎖地圖裝置，開始 65 級以上異界地圖"
+    ],
+    "PoE2 終局前提醒": [
+        "● 建議先解霍爾頓拿天賦點",
+        "● 最後解多尼亞尼，正式開啟 Endgame",
+        "● 間奏怪物等級約 62-65，若壓力太高先回第四章島嶼刷裝"
+    ]
+};
+
+const BUILT_IN_GUIDES = {
+    poe2: {
+        id: 'poe2',
+        name: 'PoE2 開荒',
+        badge: 'PoE2',
+        description: 'EA 章節與間奏獎勵路線',
+        guide: POE2_GUIDE
+    },
+    poe1: {
+        id: 'poe1',
+        name: 'PoE1 開荒',
+        badge: 'PoE1',
+        description: 'ACT 1-10 經典章節路線',
+        guide: DEFAULT_GUIDE
+    }
+};
+
 // ============================================================
 // LocalStorage
 // ============================================================
 const STORAGE_KEY = 'poe_helper_config';
 const GUIDE_KEY = 'poe_helper_guide';
+const GUIDE_LIBRARY_KEY = 'poe_helper_guide_library_v2';
 function loadConfig() { try { const r = localStorage.getItem(STORAGE_KEY); if (r) return JSON.parse(r); } catch (e) { } return null; }
 function saveConfig(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch (e) { } }
 function loadGuide() { try { const r = localStorage.getItem(GUIDE_KEY); if (r) return JSON.parse(r); } catch (e) { } return null; }
 function saveGuide(d) { try { localStorage.setItem(GUIDE_KEY, JSON.stringify(d)); } catch (e) { } }
+function cloneGuideLibrary(library) { return Object.fromEntries(Object.entries(library).map(([id, guide]) => [id, { ...guide, guide: { ...guide.guide } }])); }
+function loadGuideLibrary() {
+    const builtIns = cloneGuideLibrary(BUILT_IN_GUIDES);
+    try {
+        const raw = localStorage.getItem(GUIDE_LIBRARY_KEY);
+        if (raw) {
+            const saved = JSON.parse(raw);
+            return { ...builtIns, ...saved };
+        }
+    } catch (e) { }
+
+    const legacyGuide = loadGuide();
+    if (legacyGuide) {
+        return {
+            ...builtIns,
+            custom_legacy: {
+                id: 'custom_legacy',
+                name: '舊版自訂攻略',
+                badge: '自訂',
+                description: '由舊版單一攻略移轉',
+                guide: legacyGuide,
+                custom: true
+            }
+        };
+    }
+
+    return builtIns;
+}
+function saveGuideLibrary(library) {
+    try { localStorage.setItem(GUIDE_LIBRARY_KEY, JSON.stringify(library)); } catch (e) { }
+}
 
 // ============================================================
 // Toast
@@ -170,7 +283,7 @@ const Toast = ({ message, visible }) => (
 // 攻略編輯器 Modal
 // ============================================================
 // ============================================================
-// Vendor Regex 視窗
+// Vendor 正規表示式視窗
 // ============================================================
 const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
     const [isEditing, setIsEditing] = useState(false);
@@ -189,11 +302,11 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex flex-col items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="poe-modal-backdrop fixed inset-0 z-[60] flex flex-col items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                className={cn("w-full max-w-sm max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden",
-                    dark ? "bg-[#292a2d] text-gray-200 border border-gray-700" : "bg-white text-[#3c4043] border border-gray-200"
+                className={cn("poe-modal w-full max-w-sm max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden",
+                    dark ? "text-gray-200 border" : "text-[#3c4043] border"
                 )}
             >
                 {/* 標題 */}
@@ -203,7 +316,7 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
                             <Search size={16} />
                         </div>
                         <div>
-                            <span className="text-sm font-bold block">Regex</span>
+                            <span className="text-sm font-bold block">正規表示式</span>
                             <p className="text-[10px] text-gray-500 font-medium">點擊標籤即可自動複製字串</p>
                         </div>
                     </div>
@@ -213,14 +326,14 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
                 {/* 列表 */}
                 <div className={cn("flex-1 overflow-y-auto px-4 py-3 space-y-2 custom-scrollbar", dark ? "bg-[#202124]" : "bg-[#f8f9fa]")}>
                     {regexes.length === 0 && (
-                        <div className="text-center py-6 text-xs text-gray-500">目前沒有設定任何 Regex</div>
+                        <div className="text-center py-6 text-xs text-gray-500">目前沒有設定任何正規表示式</div>
                     )}
                     {regexes.map(r => (
                         <div key={r.id} className={cn("flex items-center gap-2 p-2 rounded-xl border transition-all", dark ? "bg-[#292a2d] border-gray-700" : "bg-white border-gray-200 shadow-sm")}>
                             {isEditing ? (
                                 <div className="flex-1 flex flex-col gap-1.5">
                                     <input value={r.name} onChange={e => handleUpdate(r.id, 'name', e.target.value)} placeholder="標籤名稱" className={cn("text-xs px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-500", dark ? "bg-white/5 text-gray-200 border border-white/10" : "bg-black/5 text-gray-800 border-none")} />
-                                    <input value={r.regex} onChange={e => handleUpdate(r.id, 'regex', e.target.value)} placeholder="Regex 字串" className={cn("text-[10px] font-mono px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-500", dark ? "bg-white/5 text-gray-400 border border-white/10" : "bg-black/5 text-gray-500 border-none")} />
+                                    <input value={r.regex} onChange={e => handleUpdate(r.id, 'regex', e.target.value)} placeholder="正規表示式字串" className={cn("text-[10px] font-mono px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-500", dark ? "bg-white/5 text-gray-400 border border-white/10" : "bg-black/5 text-gray-500 border-none")} />
                                 </div>
                             ) : (
                                 <button onClick={() => handleCopy(r)} className="flex-1 flex items-center justify-between text-left px-2 py-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group">
@@ -235,7 +348,7 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
                     ))}
                     {isEditing && (
                         <button onClick={handleAdd} className="w-full py-2 flex items-center justify-center gap-1.5 text-xs text-blue-500 hover:bg-blue-500/10 rounded-xl border border-dashed border-blue-500/30 transition-colors">
-                            <Plus size={14} /> 新增 Regex
+                            <Plus size={14} /> 新增正規表示式
                         </button>
                     )}
                 </div>
@@ -256,9 +369,9 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
     );
 };
 
-// 速查表視窗已重構至獨立組件
+// 快捷圖片視窗已重構至獨立組件
 
-const GuideEditor = ({ guideData, onSave, onClose, onReset, dark }) => {
+const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset, dark }) => {
     // 將 guide 物件轉為可編輯的文字格式
     const guideToText = (guide) => {
         return Object.entries(guide).map(([chapter, tasks]) => {
@@ -295,11 +408,11 @@ const GuideEditor = ({ guideData, onSave, onClose, onReset, dark }) => {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="poe-modal-backdrop fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                className={cn("w-full h-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden",
-                    dark ? "bg-[#292a2d] text-gray-200 border border-gray-700" : "bg-white text-[#3c4043] border border-gray-200"
+                className={cn("poe-modal w-full h-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden",
+                    dark ? "text-gray-200 border" : "text-[#3c4043] border"
                 )}
             >
                 {/* 編輯器標題 */}
@@ -309,8 +422,8 @@ const GuideEditor = ({ guideData, onSave, onClose, onReset, dark }) => {
                             <FileEdit size={18} />
                         </div>
                         <div>
-                            <span className="text-sm font-bold block">自定義攻略內容</span>
-                            <p className="text-[10px] text-gray-500 font-medium">修改後點擊儲存即可套用</p>
+                            <span className="text-sm font-bold block">編輯 {guideMeta?.name || '攻略'} 內容</span>
+                            <p className="text-[10px] text-gray-500 font-medium">只會修改目前選取的攻略</p>
                         </div>
                     </div>
                     <button onClick={onClose} className="p-2 hover:bg-gray-500/10 rounded-full transition-colors"><X size={18} /></button>
@@ -344,7 +457,7 @@ const GuideEditor = ({ guideData, onSave, onClose, onReset, dark }) => {
                         className={cn("flex items-center gap-2 px-4 py-2 text-xs rounded-xl transition-all active:scale-95 border border-transparent hover:border-gray-200 shadow-sm",
                             dark ? "text-gray-400 hover:bg-gray-700 hover:text-gray-200" : "text-[#5f6368] hover:bg-gray-100"
                         )}>
-                        <Undo2 size={14} /><span>還原預設</span>
+                        <Undo2 size={14} /><span>還原此攻略</span>
                     </button>
                     <div className="flex gap-3">
                         <button onClick={onClose}
@@ -368,8 +481,8 @@ const GuideEditor = ({ guideData, onSave, onClose, onReset, dark }) => {
 // ============================================================
 const HOTKEY_LABELS = {
     toggle: '隱藏/顯示',
-    cheatsheet: '速查表',
-    regex: 'Regex',
+    cheatsheet: '快捷圖片',
+    regex: '正規表示式',
     timer: '計時器 開始/暫停',
     prevAct: '上一章',
     nextAct: '下一章',
@@ -409,11 +522,11 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose, dark }) => {
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
+            className="poe-modal-backdrop fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm"
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
-                className={cn("w-full max-w-xs rounded-2xl shadow-2xl flex flex-col overflow-hidden",
-                    dark ? "bg-[#292a2d] text-gray-200 border border-gray-700" : "bg-white text-[#3c4043] border border-gray-200"
+                className={cn("poe-modal w-full max-w-xs rounded-2xl shadow-2xl flex flex-col overflow-hidden",
+                    dark ? "text-gray-200 border" : "text-[#3c4043] border"
                 )}
             >
                 {/* 標題 */}
@@ -477,45 +590,33 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose, dark }) => {
 // ============================================================
 // 主應用
 // ============================================================
-const FONT_FAMILIES = [
-    { label: '微軟正黑', value: '"Microsoft JhengHei", "Apple LiGothic Medium", "PingFang TC", sans-serif' },
-    { label: '標楷體', value: 'BiauKai, "DFKai-SB", serif' },
-    { label: '黑體', value: '"Heiti TC", "LiHei Pro", sans-serif' },
-    { label: '預設', value: 'sans-serif' },
-];
-
-const FONT_WEIGHTS = [
-    { label: '細', value: '300' },
-    { label: '正常', value: 'normal' },
-    { label: '粗', value: 'bold' },
-    { label: '極粗', value: '900' },
-];
-
-const FONT_SIZES = [
-    { label: '小', value: 11 },
-    { label: '中', value: 13 },
-    { label: '大', value: 15 },
-    { label: '特', value: 17 },
-];
+const TASK_FONT_FAMILY = '"Heiti TC", "LiHei Pro", "PingFang TC", "Microsoft JhengHei", sans-serif';
+const MIN_UI_FONT_SIZE = 9;
+const MAX_UI_FONT_SIZE = 20;
+const FONT_SIZE_OPTIONS = [10, 11, 12, 13, 14, 16, 18, 20];
 
 const App = () => {
     const saved = loadConfig();
-    const [actIdx, setActIdx] = useState(saved?.last_act ?? 0);
-    const [checkedTasks, setCheckedTasks] = useState(saved?.checked ?? {});
+    const [guideLibrary, setGuideLibrary] = useState(() => loadGuideLibrary());
+    const initialGuideId = saved?.activeGuideId && guideLibrary[saved.activeGuideId] ? saved.activeGuideId : 'poe2';
+    const legacyGuideId = saved?.activeGuideId || 'poe1';
+    const [activeGuideId, setActiveGuideId] = useState(initialGuideId);
+    const [actIdxByGuide, setActIdxByGuide] = useState(saved?.actIdxByGuide ?? { [legacyGuideId]: saved?.last_act ?? 0 });
+    const [actIdx, setActIdx] = useState(actIdxByGuide[initialGuideId] ?? (saved?.activeGuideId ? saved?.last_act ?? 0 : 0));
+    const [checkedByGuide, setCheckedByGuide] = useState(saved?.checkedByGuide ?? { [legacyGuideId]: saved?.checked ?? {} });
     const [elapsedMs, setElapsedMs] = useState(saved?.time ?? 0);
     const [isRunning, setIsRunning] = useState(false);
     const [opacity, setOpacity] = useState(saved?.alpha ?? 0.9);
-    const [dark, setDark] = useState(saved?.dark ?? false);
-    const [fontSize, setFontSize] = useState(saved?.fontSize ?? 13);
-    const [fontFamily, setFontFamily] = useState(saved?.fontFamily ?? '"Microsoft JhengHei", "Apple LiGothic Medium", "PingFang TC", sans-serif');
-    const [fontWeight, setFontWeight] = useState(saved?.fontWeight ?? 'normal');
-    // 多張速查表圖片 (從舊的單張格式自動遷移)
+    const [dark, setDark] = useState(saved?.dark ?? true);
+    const initialFontSize = saved?.fontSize ?? 13;
+    const [fontSize, setFontSize] = useState(initialFontSize);
+    // 多張快捷圖片 (從舊的單張格式自動遷移)
     const [cheatsheets, setCheatsheets] = useState(() => {
         if (saved?.cheatsheets && Array.isArray(saved.cheatsheets)) return saved.cheatsheets;
         if (saved?.cheatsheet) return [saved.cheatsheet];
         return [];
     });
-    const [actImages, setActImages] = useState(saved?.actImages ?? {});
+    const [actImagesByGuide, setActImagesByGuide] = useState(saved?.actImagesByGuide ?? { [legacyGuideId]: saved?.actImages ?? {} });
     const [showActMap, setShowActMap] = useState(false);
     const [regexes, setRegexes] = useState(saved?.regexes ?? [
         { id: 1, name: '3連色 (紅綠藍)', regex: 'r-g-b|r-b-g|g-r-b|g-b-r|b-r-g|b-g-r' },
@@ -524,11 +625,11 @@ const App = () => {
     const [showRegex, setShowRegex] = useState(false);
     const [showCheatsheet, setShowCheatsheet] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
+    const [showFontSizeMenu, setShowFontSizeMenu] = useState(false);
     const [showEditor, setShowEditor] = useState(false);
     const [showHotkeySettings, setShowHotkeySettings] = useState(false);
     const [toastMsg, setToastMsg] = useState('');
     const [toastVisible, setToastVisible] = useState(false);
-    const [guideData, setGuideData] = useState(() => loadGuide() || DEFAULT_GUIDE);
     // 隱藏計時器 & 任務攻略
     const [showTimer, setShowTimer] = useState(saved?.showTimer ?? true);
     const [showGuide, setShowGuide] = useState(saved?.showGuide ?? true);
@@ -540,16 +641,28 @@ const App = () => {
     const [updateVersion, setUpdateVersion] = useState('');
     const [updateProgress, setUpdateProgress] = useState(0);
 
+    const activeGuide = guideLibrary[activeGuideId] || BUILT_IN_GUIDES.poe2;
+    const guideData = activeGuide.guide || {};
+    const checkedTasks = checkedByGuide[activeGuideId] || {};
+    const actImages = actImagesByGuide[activeGuideId] || {};
+    const guideOptions = Object.values(guideLibrary);
     const acts = Object.keys(guideData);
     const safeActIdx = actIdx < acts.length ? actIdx : 0;
     const currentAct = acts[safeActIdx];
     const startTimeRef = useRef(Date.now() - elapsedMs);
+    const actImageInputRef = useRef(null);
+    const cheatsheetInputRef = useRef(null);
 
     // --- 初始化載入快捷鍵 ---
     useEffect(() => {
         if (!isElectron) return;
         window.electronAPI.getHotkeys().then(hk => { if (hk) setHotkeys(hk); });
     }, []);
+
+    useEffect(() => {
+        document.documentElement.style.setProperty('--poe-ui-scale', String(fontSize / 13));
+        return () => document.documentElement.style.removeProperty('--poe-ui-scale');
+    }, [fontSize]);
 
     // --- 計時器 ---
     useEffect(() => {
@@ -559,19 +672,19 @@ const App = () => {
         return () => cancelAnimationFrame(raf);
     }, [isRunning]);
 
-    // --- 速查表快捷鍵 ---
+    // --- 快捷圖片快捷鍵 ---
     useEffect(() => {
         if (!isElectron) return;
         const toggle = async () => {
             if (cheatsheets.length === 0) {
-                toast('請先至設定選擇速查表圖片');
+                toast('請先至設定選擇快捷圖片');
                 return;
             }
             const isOpen = await window.electronAPI.isViewerOpen('cheatsheet');
             if (isOpen) {
                 window.electronAPI.closeViewer('cheatsheet');
             } else {
-                window.electronAPI.openViewer({ id: 'cheatsheet', title: '速查表', images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
+                window.electronAPI.openViewer({ id: 'cheatsheet', title: '快捷圖片', images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
             }
         };
         window.electronAPI.onToggleCheatsheet(toggle);
@@ -593,7 +706,7 @@ const App = () => {
                 if (isOpen) window.electronAPI.updateViewerData('actMap', { images: actImages[currentAct], hotkeyLabel: '100%' });
             });
         }
-    }, [currentAct, actImages]);
+    }, [currentAct, actImages, activeGuideId]);
 
     // --- Regex 快捷鍵 ---
     useEffect(() => {
@@ -669,29 +782,100 @@ const App = () => {
 
     // --- 持久化 ---
     const persist = useCallback(() => {
-        saveConfig({ last_act: safeActIdx, checked: checkedTasks, time: elapsedMs, alpha: opacity, dark, fontSize, fontFamily, fontWeight, cheatsheets, actImages, regexes, showTimer, showGuide });
+        saveConfig({
+            activeGuideId,
+            last_act: safeActIdx,
+            actIdxByGuide: { ...actIdxByGuide, [activeGuideId]: safeActIdx },
+            checkedByGuide,
+            checked: checkedTasks,
+            time: elapsedMs,
+            alpha: opacity,
+            dark,
+            fontSize,
+            cheatsheets,
+            actImagesByGuide,
+            actImages,
+            regexes,
+            showTimer,
+            showGuide
+        });
+        saveGuideLibrary(guideLibrary);
 
         // 請求清理未使用的圖片檔案
         if (isElectron) {
             const activeUrls = new Set();
             cheatsheets.forEach(url => activeUrls.add(url));
-            Object.values(actImages).forEach(arr => {
-                arr.forEach(url => activeUrls.add(url));
+            Object.values(actImagesByGuide).forEach(imagesByAct => {
+                Object.values(imagesByAct || {}).forEach(arr => {
+                    arr.forEach(url => activeUrls.add(url));
+                });
             });
             window.electronAPI.cleanupImages(Array.from(activeUrls));
         }
-    }, [safeActIdx, checkedTasks, elapsedMs, opacity, dark, fontSize, fontFamily, fontWeight, cheatsheets, actImages, regexes, showTimer, showGuide]);
-    useEffect(() => { persist(); }, [safeActIdx, checkedTasks, opacity, dark, fontSize, fontFamily, fontWeight, cheatsheets, actImages, regexes, showTimer, showGuide]);
+    }, [activeGuideId, safeActIdx, actIdxByGuide, checkedByGuide, checkedTasks, elapsedMs, opacity, dark, fontSize, cheatsheets, actImagesByGuide, actImages, regexes, showTimer, showGuide, guideLibrary]);
+    useEffect(() => { persist(); }, [activeGuideId, safeActIdx, checkedByGuide, opacity, dark, fontSize, cheatsheets, actImagesByGuide, regexes, showTimer, showGuide, guideLibrary]);
     useEffect(() => { if (!isRunning) { persist(); return; } const id = setInterval(persist, 5000); return () => clearInterval(id); }, [isRunning, persist]);
 
     const handleOpacity = (val) => { setOpacity(val); if (isElectron) window.electronAPI.setOpacity(val); };
-    const toggleTask = (task) => { const k = `${currentAct}_${task}`; setCheckedTasks(p => ({ ...p, [k]: !p[k] })); };
+    const handleFontSize = (value) => {
+        const next = Math.min(MAX_UI_FONT_SIZE, Math.max(MIN_UI_FONT_SIZE, Math.round(Number.isFinite(value) ? value : fontSize)));
+        setFontSize(next);
+    };
+    const setActiveCheckedTasks = (updater) => {
+        setCheckedByGuide(prev => {
+            const current = prev[activeGuideId] || {};
+            const next = typeof updater === 'function' ? updater(current) : updater;
+            return { ...prev, [activeGuideId]: next };
+        });
+    };
+    const setActiveActImages = (updater) => {
+        setActImagesByGuide(prev => {
+            const current = prev[activeGuideId] || {};
+            const next = typeof updater === 'function' ? updater(current) : updater;
+            return { ...prev, [activeGuideId]: next };
+        });
+    };
+    const toBrowserImageUrls = (files) => Array.from(files || []).map(file => URL.createObjectURL(file));
+    const handleBrowserActImages = (event) => {
+        const urls = toBrowserImageUrls(event.target.files);
+        if (urls.length > 0) {
+            setActiveActImages(prev => {
+                const existing = prev[currentAct] || [];
+                return { ...prev, [currentAct]: [...existing, ...urls] };
+            });
+            toast(`已為 ${currentAct} 新增圖片`);
+        }
+        event.target.value = '';
+    };
+    const handleBrowserCheatsheets = (event) => {
+        const urls = toBrowserImageUrls(event.target.files);
+        if (urls.length > 0) {
+            setCheatsheets(prev => [...prev, ...urls]);
+            toast(`已新增 ${urls.length} 張圖片`);
+        }
+        event.target.value = '';
+    };
+    const toggleTask = (task) => { const k = `${currentAct}_${task}`; setActiveCheckedTasks(p => ({ ...p, [k]: !p[k] })); };
+
+    const switchGuide = (guideId) => {
+        if (!guideLibrary[guideId] || guideId === activeGuideId) return;
+        setActIdxByGuide(prev => ({ ...prev, [activeGuideId]: safeActIdx }));
+        setActiveGuideId(guideId);
+        setActIdx(actIdxByGuide[guideId] ?? 0);
+        if (isElectron) {
+            window.electronAPI.isViewerOpen('actMap').then(isOpen => {
+                if (isOpen) window.electronAPI.closeViewer('actMap');
+            });
+        }
+        toast(`已切換到 ${guideLibrary[guideId].name}`);
+    };
 
     const resetAll = () => {
-        if (!window.confirm('確認重置所有進度？')) return;
-        setCheckedTasks({}); setElapsedMs(0); setIsRunning(false); setActIdx(0);
+        if (!window.confirm(`確認重置「${activeGuide.name}」的進度與計時？其他攻略不會被清除。`)) return;
+        setActiveCheckedTasks({}); setElapsedMs(0); setIsRunning(false); setActIdx(0);
+        setActIdxByGuide(prev => ({ ...prev, [activeGuideId]: 0 }));
         startTimeRef.current = Date.now();
-        saveConfig({ last_act: 0, checked: {}, time: 0, alpha: opacity, dark, fontSize, fontFamily, fontWeight, cheatsheets, actImages, regexes, showTimer, showGuide });
+        saveConfig({ activeGuideId, last_act: 0, actIdxByGuide: { ...actIdxByGuide, [activeGuideId]: 0 }, checkedByGuide: { ...checkedByGuide, [activeGuideId]: {} }, checked: {}, time: 0, alpha: opacity, dark, fontSize, cheatsheets, actImagesByGuide, actImages, regexes, showTimer, showGuide });
         toast('進度已重置');
     };
 
@@ -699,17 +883,30 @@ const App = () => {
 
     // --- 攻略儲存 ---
     const handleGuideSave = (newGuide) => {
-        setGuideData(newGuide); saveGuide(newGuide);
-        setActIdx(0); setCheckedTasks({});
+        setGuideLibrary(prev => ({ ...prev, [activeGuideId]: { ...prev[activeGuideId], guide: newGuide, customEdited: true } }));
+        setActIdx(0); setActiveCheckedTasks({});
+        setActIdxByGuide(prev => ({ ...prev, [activeGuideId]: 0 }));
         setShowEditor(false);
-        toast('攻略已更新');
+        toast(`${activeGuide.name} 已更新`);
     };
     const handleGuideReset = () => {
-        setGuideData(DEFAULT_GUIDE); saveGuide(null);
+        const resetGuideId = BUILT_IN_GUIDES[activeGuideId] ? activeGuideId : 'poe2';
+        setGuideLibrary(prev => {
+            const next = { ...prev };
+            if (BUILT_IN_GUIDES[activeGuideId]) {
+                next[activeGuideId] = cloneGuideLibrary(BUILT_IN_GUIDES)[activeGuideId];
+            } else {
+                delete next[activeGuideId];
+            }
+            saveGuideLibrary(next);
+            return next;
+        });
+        if (resetGuideId !== activeGuideId) setActiveGuideId(resetGuideId);
         localStorage.removeItem(GUIDE_KEY);
-        setActIdx(0); setCheckedTasks({});
+        setActIdx(0); setActiveCheckedTasks({});
+        setActIdxByGuide(prev => ({ ...prev, [resetGuideId]: 0 }));
         setShowEditor(false);
-        toast('已還原預設攻略');
+        toast('已還原此攻略預設內容');
     };
 
     // --- 進度 ---
@@ -721,47 +918,47 @@ const App = () => {
     const currentPercent = currentTasks.length > 0 ? Math.round((currentCompleted / currentTasks.length) * 100) : 0;
 
     // --- 主題色 ---
-    const bg = dark ? 'bg-[#202124]' : 'bg-[#f8f9fa]';
-    const cardBg = dark ? 'bg-[#292a2d]' : 'bg-white';
-    const textPrimary = dark ? 'text-gray-200' : 'text-[#3c4043]';
-    const textSecondary = dark ? 'text-gray-500' : 'text-[#9aa0a6]';
-    const border = dark ? 'border-gray-700/50' : 'border-gray-200';
+    const bg = dark ? 'poe-bg-dark' : 'poe-bg-parchment';
+    const cardBg = dark ? 'poe-panel' : 'poe-panel poe-panel-light';
+    const textPrimary = dark ? 'poe-text-primary' : 'poe-text-ink';
+    const textSecondary = dark ? 'poe-text-secondary' : 'poe-text-muted';
+    const border = 'poe-border';
 
     return (
-        <div className={cn("flex flex-col h-full font-sans overflow-hidden rounded-xl relative", bg, textPrimary)}>
+        <div className={cn("poe-shell flex flex-col h-full font-sans overflow-hidden rounded-xl relative", bg, textPrimary, dark ? 'poe-mode-dark' : 'poe-mode-light')}>
 
             {/* ===== 標題列 ===== */}
-            <header className={cn("px-2.5 py-1.5 flex items-center justify-between shadow-sm z-10 select-none shrink-0 border-b", cardBg, border)}
+            <header className={cn("poe-titlebar px-2.5 py-2 flex items-center justify-between z-10 select-none shrink-0 border-b", cardBg, border)}
                 style={{ WebkitAppRegion: 'drag' }}>
                 <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-md bg-gradient-to-br from-[#1a73e8] to-[#4285f4] flex items-center justify-center text-white">
+                    <div className="poe-sigil w-6 h-6 rounded-lg flex items-center justify-center text-white">
                         <Sword size={12} strokeWidth={2.5} />
                     </div>
                     <div>
                         <h1 className="text-xs font-bold leading-none">
-                            {completedTasks}/{totalTasks} ({progressPercent}%)
-                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.5</span>
+                            {activeGuide.name} · {completedTasks}/{totalTasks} ({progressPercent}%)
+                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.6</span>
                             {updateStatus === 'downloaded' && (
-                                <span className="ml-1.5 px-1 bg-green-500 text-white rounded-[3px] text-[8px] animate-pulse">UPDATE READY</span>
+                                <span className="poe-update-badge ml-1.5 px-1 rounded-[4px] text-[8px] animate-pulse">UPDATE READY</span>
                             )}
                         </h1>
                         <p className={cn("text-[9px] font-medium", textSecondary)}>
                             {updateStatus === 'downloading'
                                 ? `正在下載更新: ${Math.round(updateProgress)}%`
-                                : isElectron ? `${hotkeys.toggle} 隱藏` : 'PoE Helper'}
+                                : `${activeGuide.description}${isElectron ? ` · ${hotkeys.toggle} 隱藏` : ''}`}
                         </p>
                     </div>
                 </div>
                 <div className="flex items-center gap-0.5" style={{ WebkitAppRegion: 'no-drag' }}>
-                    <button onClick={resetAll} className={cn("p-1.5 rounded-full transition-all active:scale-90 hover:bg-red-500/10 hover:text-red-400", textSecondary)} title="重置進度">
+                    <button onClick={resetAll} className={cn("poe-icon-btn p-1.5 rounded-full transition-all active:scale-90 hover:bg-red-500/10 hover:text-red-400", textSecondary)} title="重置進度">
                         <RotateCcw size={14} />
                     </button>
-                    <button onClick={() => setShowSettings(s => !s)} className={cn("p-1.5 rounded-full transition-all active:scale-90", showSettings ? "bg-blue-500/20 text-[#1a73e8]" : cn("hover:bg-gray-500/10", textSecondary))} title="設定">
+                    <button onClick={() => setShowSettings(s => !s)} className={cn("poe-icon-btn p-1.5 rounded-full transition-all active:scale-90", showSettings ? "poe-icon-btn-active" : textSecondary)} title="設定">
                         <Settings size={14} />
                     </button>
                     {isElectron && (<>
-                        <button onClick={() => window.electronAPI.minimizeWindow()} className={cn("p-1.5 hover:bg-gray-500/10 rounded-full transition-colors", textSecondary)} title="最小化"><Minus size={14} /></button>
-                        <button onClick={() => window.electronAPI.closeWindow()} className={cn("p-1.5 hover:bg-red-500/10 hover:text-red-400 rounded-full transition-colors", textSecondary)} title="關閉"><X size={14} /></button>
+                        <button onClick={() => window.electronAPI.minimizeWindow()} className={cn("poe-icon-btn p-1.5 rounded-full transition-colors", textSecondary)} title="最小化"><Minus size={14} /></button>
+                        <button onClick={() => window.electronAPI.closeWindow()} className={cn("poe-icon-btn p-1.5 hover:bg-red-500/10 hover:text-red-400 rounded-full transition-colors", textSecondary)} title="關閉"><X size={14} /></button>
                     </>)}
                 </div>
             </header>
@@ -769,8 +966,8 @@ const App = () => {
             {/* 更新進度條 */}
             <AnimatePresence>
                 {updateStatus === 'downloading' && (
-                    <motion.div initial={{ height: 0 }} animate={{ height: 2 }} exit={{ height: 0 }} className="bg-blue-500/20 w-full overflow-hidden shrink-0">
-                        <motion.div className="h-full bg-blue-500" initial={{ width: 0 }} animate={{ width: `${updateProgress}%` }} />
+                    <motion.div initial={{ height: 0 }} animate={{ height: 2 }} exit={{ height: 0 }} className="poe-progress-track w-full overflow-hidden shrink-0">
+                        <motion.div className="h-full poe-progress-fill" initial={{ width: 0 }} animate={{ width: `${updateProgress}%` }} />
                     </motion.div>
                 )}
             </AnimatePresence>
@@ -779,204 +976,223 @@ const App = () => {
             <AnimatePresence>
                 {showSettings && (
                     <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.15 }}
-                        className={cn("overflow-hidden border-b shrink-0", cardBg, border)}>
+                        className={cn("poe-settings-panel overflow-hidden border-b shrink-0", cardBg, border)}>
                         <div className="px-3 py-2.5 space-y-2.5">
+
+                            {/* 攻略切換 */}
+                            <div className="space-y-1">
+                                <div className="flex items-center justify-between">
+                                    <div className="flex items-center gap-1.5"><ListChecks size={12} className={textSecondary} /><span className="text-[11px] font-medium">攻略版本</span></div>
+                                    <span className={cn("text-[10px] font-mono px-1.5 py-0.5 rounded-md", textSecondary)}>{safeActIdx + 1}/{acts.length} 章節</span>
+                                </div>
+                                <div className="grid grid-cols-2 gap-2">
+                                    {guideOptions.map(guide => {
+                                        const checked = checkedByGuide[guide.id] || {};
+                                        const guideTotal = Object.values(guide.guide || {}).flat().length;
+                                        const guideDone = Object.values(checked).filter(Boolean).length;
+                                        const isActive = guide.id === activeGuideId;
+                                        return (
+                                            <button key={guide.id} onClick={() => switchGuide(guide.id)}
+                                                className={cn("poe-guide-card text-left rounded-xl px-3 py-2 border transition-all active:scale-95", isActive ? "poe-guide-card-active" : "poe-guide-card-idle")}
+                                                title={guide.description}>
+                                                <div className="flex items-center justify-between gap-2">
+                                                    <span className="text-[11px] font-bold truncate">{guide.name}</span>
+                                                    <span className="text-[9px] font-mono opacity-70">{guideDone}/{guideTotal}</span>
+                                                </div>
+                                                <div className={cn("mt-0.5 text-[9px] leading-snug truncate", textSecondary)}>{guide.description}</div>
+                                            </button>
+                                        );
+                                    })}
+                                </div>
+                            </div>
 
                             {/* 透明度 */}
                             <div>
                                 <div className="flex items-center justify-between mb-1">
                                     <div className="flex items-center gap-1.5"><Eye size={12} className={textSecondary} /><span className="text-[11px] font-medium">透明度</span></div>
-                                    <span className={cn("text-[10px] font-mono px-1.5 py-0.5 rounded", dark ? "bg-gray-700" : "bg-gray-100", textSecondary)}>{Math.round(opacity * 100)}%</span>
+                                    <span className={cn("poe-chip text-[10px] font-mono px-1.5 py-0.5 rounded-md", textSecondary)}>{Math.round(opacity * 100)}%</span>
                                 </div>
-                                <input type="range" min="0.1" max="1" step="0.05" value={opacity} onChange={e => handleOpacity(parseFloat(e.target.value))} className="w-full h-1 bg-gray-300 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-[#1a73e8]" />
-                            </div>
-
-                            {/* 字型、粗細、大小設定面板 (Row 1) */}
-                            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-0.5">
-                                {/* 字型選擇 */}
-                                <div className="flex items-center gap-1.5 shrink-0">
-                                    <div className="w-5 h-5 rounded-md bg-indigo-500/10 flex items-center justify-center text-indigo-500 shrink-0">
-                                        <Type size={12} />
-                                    </div>
-                                    <div className="flex items-center gap-1">
-                                        {FONT_FAMILIES.map(ff => (
-                                            <button key={ff.value} onClick={() => setFontFamily(ff.value)}
-                                                className={cn("px-1.5 py-1 rounded text-[10px] font-medium transition-all active:scale-95 truncate max-w-[48px]",
-                                                    fontFamily.includes(ff.value.split(',')[0])
-                                                        ? "bg-[#1a73e8] text-white"
-                                                        : cn("hover:bg-gray-500/10", textSecondary)
-                                                )}
-                                                title={ff.label}>
-                                                {ff.label}
-                                            </button>
-                                        ))}
-                                    </div>
-                                </div>
-                                <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-0.5 shrink-0" />
-                                {/* 粗細設定 */}
-                                <div className="flex items-center gap-1 shrink-0">
-                                    {FONT_WEIGHTS.map(fw => (
-                                        <button key={fw.value} onClick={() => setFontWeight(fw.value)}
-                                            className={cn("px-1.2 py-1 rounded text-[10px] font-medium transition-all active:scale-95",
-                                                fontWeight === fw.value
-                                                    ? "bg-[#1a73e8] text-white"
-                                                    : cn("hover:bg-gray-500/10", textSecondary)
-                                            )}>
-                                            {fw.label}
-                                        </button>
-                                    ))}
-                                </div>
-                                <div className="h-4 w-px bg-gray-300 dark:bg-gray-700 mx-0.5 shrink-0" />
-                                {/* 大小設定 */}
-                                <div className="flex items-center gap-1 shrink-0">
-                                    {FONT_SIZES.map(fs => (
-                                        <button key={fs.value} onClick={() => setFontSize(fs.value)}
-                                            className={cn("px-1.5 py-1 rounded text-[10px] font-medium transition-all active:scale-95",
-                                                fontSize === fs.value
-                                                    ? "bg-[#1a73e8] text-white"
-                                                    : cn("hover:bg-gray-500/10", textSecondary)
-                                            )}>
-                                            {fs.label}
-                                        </button>
-                                    ))}
-                                </div>
+                                <input type="range" min="0.1" max="1" step="0.05" value={opacity} onChange={e => handleOpacity(parseFloat(e.target.value))} className="poe-range w-full h-1 rounded-lg appearance-none cursor-pointer" />
                             </div>
 
                             {/* 深淺模式 & 自訂快捷鍵 (Row 2) */}
-                            <div className="flex items-center gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 <button onClick={() => setDark(d => !d)}
-                                    className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 flex-1 justify-center",
-                                        dark ? "bg-yellow-500/15 text-yellow-400 hover:bg-yellow-500/25" : "bg-indigo-500/10 text-indigo-500 hover:bg-indigo-500/20"
+                                    className={cn("flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 justify-center min-w-0",
+                                        dark ? "poe-action-secondary" : "poe-action-secondary"
                                     )}>
                                     {dark ? <Sun size={12} /> : <Moon size={12} />}
                                     <span>{dark ? '淺色模式' : '深色模式'}</span>
                                 </button>
-                                {isElectron && (
-                                    <button onClick={() => { setShowHotkeySettings(true); setShowSettings(false); }}
-                                        className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                            dark ? "bg-amber-500/10 text-amber-400 hover:bg-amber-500/20" : "bg-amber-50 text-amber-600 hover:bg-amber-100"
-                                        )}>
-                                        <Keyboard size={12} /><span>自訂快捷鍵</span>
+                                <div className="min-w-0">
+                                    <button onClick={() => setShowFontSizeMenu(v => !v)}
+                                        className={cn("poe-font-size-trigger w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95", "poe-action-secondary")}
+                                        title="選擇文字大小"
+                                        aria-expanded={showFontSizeMenu}
+                                        aria-haspopup="menu">
+                                        <Type size={12} />
+                                        <span className="truncate">文字大小</span>
+                                        <span className="font-mono text-[10px] opacity-75">{fontSize}px</span>
                                     </button>
-                                )}
+                                </div>
                             </div>
 
+                            {showFontSizeMenu && (
+                                <div className="poe-font-size-menu grid grid-cols-4 gap-1 rounded-lg border p-1" role="menu" aria-label="文字大小選單">
+                                    {FONT_SIZE_OPTIONS.map(size => (
+                                        <button key={size}
+                                            onClick={() => { handleFontSize(size); setShowFontSizeMenu(false); }}
+                                            className={cn("flex items-center justify-center rounded-md px-2 py-1.5 text-[10px] font-medium transition-all active:scale-95",
+                                                size === fontSize ? "poe-font-size-option-active" : "poe-font-size-option"
+                                            )}
+                                            role="menuitem">
+                                            {size === 13 ? '預設' : `${size}px`}
+                                        </button>
+                                    ))}
+                                </div>
+                            )}
 
 
-                            {/* 自定義攻略與Vendor Regex (同一行) */}
-                            <div className="flex items-center gap-2">
+
+                            {/* 自定義攻略與正規表示式 (同一行) */}
+                            <div className="grid grid-cols-2 gap-2">
                                 <button onClick={() => { setShowEditor(true); setShowSettings(false); }}
-                                    className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                        dark ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-100 text-[#5f6368] hover:bg-gray-200"
+                                    className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                        "poe-action-secondary"
                                     )}>
                                     <FileEdit size={12} /><span>自定義攻略</span>
                                 </button>
                                 <button onClick={() => { setShowRegex(true); setShowSettings(false); }}
-                                    className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                        dark ? "bg-indigo-500/10 text-indigo-400 hover:bg-indigo-500/20" : "bg-indigo-50 text-indigo-600 hover:bg-indigo-100"
+                                    className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                        "poe-action-secondary"
                                     )}>
-                                    <Search size={12} /><span>Regex</span>
+                                    <Search size={12} /><span>正規表示式</span>
                                 </button>
                             </div>
 
                             {/* 顯示/隱藏 計時器 & 攻略 */}
-                            <div className="flex items-center gap-2">
+                            <div className="grid grid-cols-2 gap-2">
                                 <button onClick={() => setShowTimer(v => !v)}
-                                    className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                        showTimer ? (dark ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-50 text-emerald-600") : (dark ? "bg-gray-700 text-gray-500" : "bg-gray-100 text-gray-400")
+                                    className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                        showTimer ? "poe-action-success" : "poe-action-muted opacity-70"
                                     )}>
-                                    <Timer size={12} /><span>{showTimer ? '計時器' : '計時器(隱藏)'}</span>
+                                    <Timer size={12} /><span>{showTimer ? '隱藏計時器' : '顯示計時器'}</span>
                                 </button>
                                 <button onClick={() => setShowGuide(v => !v)}
-                                    className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                        showGuide ? (dark ? "bg-emerald-500/15 text-emerald-400" : "bg-emerald-50 text-emerald-600") : (dark ? "bg-gray-700 text-gray-500" : "bg-gray-100 text-gray-400")
+                                    className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                        showGuide ? "poe-action-success" : "poe-action-muted opacity-70"
                                     )}>
-                                    <ListChecks size={12} /><span>{showGuide ? '攻略' : '攻略(隱藏)'}</span>
+                                    <ListChecks size={12} /><span>{showGuide ? '隱藏攻略' : '顯示攻略'}</span>
                                 </button>
                             </div>
 
-                            {/* 路線圖 & 速查表圖片 (Electron Only) */}
                             {isElectron && (
-                                <div className="flex items-center gap-2">
-                                    {/* 路線圖 */}
-                                    <div className="flex-1 flex items-center gap-1">
-                                        <button onClick={async () => {
+                                <button onClick={() => { setShowHotkeySettings(true); setShowSettings(false); }}
+                                    className={cn("w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
+                                        "poe-action-secondary"
+                                    )}>
+                                    <Keyboard size={12} /><span>自訂快捷鍵</span>
+                                </button>
+                            )}
+
+                            {/* 路線圖 & 快捷圖片 */}
+                            <div className="grid grid-cols-2 gap-2">
+                                {/* 路線圖 */}
+                                <div className="flex items-center gap-1 min-w-0">
+                                    <button onClick={async () => {
+                                        if (isElectron) {
                                             const paths = await window.electronAPI.selectImages();
                                             if (paths && paths.length > 0) {
-                                                setActImages(prev => {
+                                                setActiveActImages(prev => {
                                                     const existing = prev[currentAct] || [];
                                                     return { ...prev, [currentAct]: [...existing, ...paths] };
                                                 });
                                                 toast(`已為 ${currentAct} 新增圖片`);
                                             }
+                                        } else {
+                                            actImageInputRef.current?.click();
+                                        }
+                                    }}
+                                        className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                            "poe-action-secondary"
+                                        )} title={`為「${currentAct}」設定專屬路線圖圖片`}>
+                                        <ImagePlus size={12} /><span className="truncate">本章路線圖</span>
+                                        <span>({actImages[currentAct]?.length || 0})</span>
+                                    </button>
+                                    {actImages[currentAct]?.length > 0 && (
+                                        <button onClick={() => {
+                                            setActiveActImages(prev => {
+                                                const next = { ...prev };
+                                                delete next[currentAct];
+                                                return next;
+                                            });
+                                            toast(`已清除 ${currentAct} 的路線圖`);
                                         }}
-                                            className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                                dark ? "bg-teal-500/10 text-teal-400 hover:bg-teal-500/20" : "bg-teal-50 text-teal-600 hover:bg-teal-100"
-                                            )} title={`為「${currentAct}」設定專屬路線圖`}>
-                                            <Map size={12} /><span className="truncate max-w-[80px]">{currentAct.split('：')[0]}</span>
-                                            <span>({actImages[currentAct]?.length || 0})</span>
+                                            className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0" title="清除本章路線圖">
+                                            <X size={12} />
                                         </button>
-                                        {actImages[currentAct]?.length > 0 && (
-                                            <button onClick={() => {
-                                                setActImages(prev => {
-                                                    const next = { ...prev };
-                                                    delete next[currentAct];
-                                                    return next;
-                                                });
-                                                toast(`已清除 ${currentAct} 的路線圖`);
-                                            }}
-                                                className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0" title="清除本章路線圖">
-                                                <X size={12} />
-                                            </button>
-                                        )}
-                                    </div>
-                                    {/* 速查表 */}
-                                    <div className="flex-1 flex items-center gap-1">
-                                        <button onClick={async () => {
+                                    )}
+                                </div>
+                                {/* 快捷圖片 */}
+                                <div className="flex items-center gap-1 min-w-0">
+                                    <button onClick={async () => {
+                                        if (isElectron) {
                                             const paths = await window.electronAPI.selectImages();
                                             if (paths && paths.length > 0) { setCheatsheets(prev => [...prev, ...paths]); toast(`已新增 ${paths.length} 張圖片`); }
-                                        }}
-                                            className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                                dark ? "bg-gray-700 text-gray-300 hover:bg-gray-600" : "bg-gray-100 text-[#5f6368] hover:bg-gray-200"
-                                            )}>
-                                            <ImageIcon size={12} /><span>速查表 ({cheatsheets.length})</span>
+                                        } else {
+                                            cheatsheetInputRef.current?.click();
+                                        }
+                                    }}
+                                        className={cn("flex-1 flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                            "poe-action-secondary"
+                                        )}>
+                                        <ImageIcon size={12} /><span>快捷圖片 ({cheatsheets.length})</span>
+                                    </button>
+                                    {cheatsheets.length > 0 && (
+                                        <button onClick={() => { setCheatsheets([]); toast('已清除所有圖片'); }}
+                                            className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0" title="清除全部">
+                                            <X size={12} />
                                         </button>
-                                        {cheatsheets.length > 0 && (
-                                            <button onClick={() => { setCheatsheets([]); toast('已清除所有圖片'); }}
-                                                className="p-1.5 text-red-400 hover:bg-red-400/10 rounded-lg transition-colors shrink-0" title="清除全部">
-                                                <X size={12} />
-                                            </button>
-                                        )}
-                                    </div>
+                                    )}
                                 </div>
-                            )}
+                                <input ref={actImageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBrowserActImages} />
+                                <input ref={cheatsheetInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBrowserCheatsheets} />
+                            </div>
 
                             {/* 快捷鍵提示與開啟資料夾 */}
                             <div className="flex items-center gap-2">
-                                <div className={cn("flex-1 text-[9px] px-2.5 py-1.5 rounded-lg leading-relaxed", dark ? "bg-[#1e1f22] text-gray-500" : "bg-gray-50 text-[#9aa0a6]")}>
-                                    {isElectron ? `⌨️ ${hotkeys.regex} Regex · ${hotkeys.cheatsheet} 速查表 · ${hotkeys.toggle} 隱藏` : '💡 Electron 版支援視窗置頂與快捷鍵'}
+                                <div className={cn("poe-hotkey-strip flex-1 text-[9px] px-2.5 py-1.5 rounded-lg leading-relaxed", textSecondary)}>
+                                    {`${hotkeys.cheatsheet || 'F9'} 快捷圖片 · ${hotkeys.regex || 'F8'} 正規表示式 · ${hotkeys.toggle || 'F10'} 隱藏/顯示`}
                                 </div>
-                                {isElectron && (
-                                    <div className="flex gap-1 shrink-0">
-                                        <button onClick={() => {
-                                            window.electronAPI.checkForUpdates();
-                                            toast('正在檢查更新...');
-                                            setUpdateStatus('checking');
-                                            setTimeout(() => { if (updateStatus === 'checking') setUpdateStatus(null); }, 10000);
-                                        }}
-                                            className={cn("px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 flex items-center gap-1.5",
-                                                dark ? "bg-blue-500/10 text-blue-400 hover:bg-blue-500/20" : "bg-blue-50 text-blue-600 hover:bg-blue-100"
-                                            )} title="立刻檢查有無新版本">
-                                            檢查更新
-                                        </button>
-                                        <button onClick={() => window.electronAPI.openImagesFolder()}
-                                            className={cn("px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 flex items-center gap-1.5",
-                                                dark ? "bg-gray-700 text-gray-400 hover:text-white hover:bg-gray-600" : "bg-gray-100 text-[#5f6368] hover:bg-gray-200"
-                                            )} title="開啟圖片儲存目錄尋找/刪除圖片">
-                                            <FolderOpen size={12} /><span>圖片目錄</span>
-                                        </button>
-                                    </div>
-                                )}
+                                <div className="flex gap-1 shrink-0">
+                                    <button onClick={() => {
+                                        if (!isElectron) {
+                                            toast('Electron 版才支援檢查更新');
+                                            return;
+                                        }
+                                        window.electronAPI.checkForUpdates();
+                                        toast('正在檢查更新...');
+                                        setUpdateStatus('checking');
+                                        setTimeout(() => { if (updateStatus === 'checking') setUpdateStatus(null); }, 10000);
+                                    }}
+                                        className={cn("px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 flex items-center gap-1.5",
+                                            "poe-action-secondary"
+                                        )} title="立刻檢查有無新版本">
+                                        檢查更新
+                                    </button>
+                                    <button onClick={() => {
+                                        if (!isElectron) {
+                                            toast('Electron 版才支援開啟圖片資料夾');
+                                            return;
+                                        }
+                                        window.electronAPI.openImagesFolder();
+                                    }}
+                                        className={cn("px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95 flex items-center gap-1.5",
+                                            "poe-action-secondary"
+                                        )} title="開啟圖片儲存目錄尋找/刪除圖片">
+                                        <FolderOpen size={12} /><span>圖片資料夾</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
                     </motion.div>
@@ -985,19 +1201,19 @@ const App = () => {
 
             {/* ===== 計時器 ===== */}
             {showTimer && (
-                <div className={cn("px-3 py-2 flex items-center justify-center gap-3 mb-px shadow-sm shrink-0", cardBg)}>
-                    <div className={cn("text-2xl font-mono font-bold px-4 py-1 rounded-xl tracking-wider select-none", dark ? "bg-blue-500/15 text-blue-400" : "bg-blue-50 text-[#1a73e8]")}>
+                <div className={cn("poe-timerbar px-3 py-2 flex items-center justify-center gap-3 mb-px shrink-0", cardBg)}>
+                    <div className="poe-clock text-2xl font-mono font-bold px-4 py-1 rounded-xl tracking-wider select-none">
                         {fmt(elapsedMs)}
                     </div>
                     <button onClick={() => setIsRunning(!isRunning)}
                         className={cn("flex items-center gap-1.5 px-4 py-1.5 rounded-full font-medium text-xs transition-all active:scale-95 shadow-sm",
-                            isRunning ? "bg-[#f28b82] text-white hover:bg-[#ee675c]" : "bg-[#1a73e8] text-white hover:bg-[#1765cc]"
+                            isRunning ? "poe-danger-btn" : "poe-primary-btn"
                         )}>
                         {isRunning ? <Pause size={14} /> : <Play size={14} />}
                         <span>{isRunning ? '暫停' : '計時'}</span>
                     </button>
                     <button onClick={() => { setElapsedMs(0); setIsRunning(false); startTimeRef.current = Date.now(); toast('計時器已歸零'); }}
-                        className={cn("p-1.5 rounded-full transition-all active:scale-90", dark ? "bg-gray-700 text-gray-400 hover:bg-gray-600" : "bg-gray-100 text-[#5f6368] hover:bg-gray-200")} title="重置計時">
+                        className={cn("poe-icon-btn p-1.5 rounded-full transition-all active:scale-90", textSecondary)} title="重置計時">
                         <RotateCcw size={14} />
                     </button>
                 </div>
@@ -1005,13 +1221,13 @@ const App = () => {
 
             {/* ===== 章節導航 + 任務列表 ===== */}
             {showGuide && (<>
-                <div className={cn("px-2 py-1 flex items-center border-b shrink-0", cardBg, border)}>
-                    <button onClick={prevAct} className={cn("p-1 rounded-full transition-colors active:scale-90", dark ? "hover:bg-gray-700" : "hover:bg-gray-100")}>
+                <div className={cn("poe-actbar px-2 py-1.5 flex items-center border-b shrink-0", cardBg, border)}>
+                    <button onClick={prevAct} className="poe-icon-btn p-1 rounded-full transition-colors active:scale-90">
                         <ChevronLeft size={18} className={textSecondary} />
                     </button>
                     <div className="flex-1 flex items-center justify-center gap-2 min-w-0">
                         <div className="flex items-center gap-1">
-                            <h2 className={cn("text-xs font-bold px-2.5 py-0.5 rounded-md truncate", dark ? "bg-blue-500/15 text-blue-400" : "bg-blue-50 text-[#1a73e8]")}>
+                            <h2 className="poe-act-pill text-xs font-bold px-2.5 py-0.5 rounded-md truncate">
                                 {currentAct}
                             </h2>
                             <button onClick={async () => {
@@ -1029,7 +1245,7 @@ const App = () => {
                                 } else if (isElectron) {
                                     window.electronAPI.selectImages().then(paths => {
                                         if (paths && paths.length > 0) {
-                                            setActImages(prev => {
+                                            setActiveActImages(prev => {
                                                 const existing = prev[currentAct] || [];
                                                 return { ...prev, [currentAct]: [...existing, ...paths] };
                                             });
@@ -1039,30 +1255,30 @@ const App = () => {
                                 } else {
                                     toast('請在應用程式中新增圖片');
                                 }
-                            }} className={cn("p-1.5 rounded transition-colors active:scale-90",
+                            }} className={cn("poe-icon-btn p-1.5 rounded-lg transition-colors active:scale-90",
                                 actImages[currentAct] && actImages[currentAct].length > 0
-                                    ? (dark ? "bg-blue-500/20 text-[#1a73e8] hover:bg-blue-500/30" : "bg-blue-50 text-[#1a73e8] hover:bg-blue-100")
-                                    : (dark ? "text-gray-500 hover:bg-gray-700" : "text-gray-400 hover:bg-gray-100")
-                            )} title={actImages[currentAct] && actImages[currentAct].length > 0 ? "查看路線圖" : "新增路線圖"}>
-                                <Map size={14} />
+                                    ? "poe-icon-btn-active"
+                                    : textSecondary
+                            )} title={actImages[currentAct] && actImages[currentAct].length > 0 ? "查看本章路線圖" : "新增本章路線圖"}>
+                                <ImagePlus size={14} />
                             </button>
                         </div>
                         <span className={cn("text-[9px] font-medium whitespace-nowrap shrink-0", textSecondary)}>
                             {currentCompleted}/{currentTasks.length} · {safeActIdx + 1}/{acts.length}章
                         </span>
                     </div>
-                    <button onClick={nextAct} className={cn("p-1 rounded-full transition-colors active:scale-90", dark ? "hover:bg-gray-700" : "hover:bg-gray-100")}>
+                    <button onClick={nextAct} className="poe-icon-btn p-1 rounded-full transition-colors active:scale-90">
                         <ChevronRight size={18} className={textSecondary} />
                     </button>
                 </div>
 
                 {/* 進度條 */}
-                <div className={cn("h-[2px] shrink-0", dark ? "bg-gray-700" : "bg-gray-100")}>
-                    <motion.div className="h-full bg-gradient-to-r from-[#1a73e8] to-[#34a853] rounded-r-full" initial={false} animate={{ width: `${currentPercent}%` }} transition={{ duration: 0.3, ease: 'easeOut' }} />
+                <div className="poe-progress-track h-[3px] shrink-0">
+                    <motion.div className="h-full poe-progress-fill rounded-r-full" initial={false} animate={{ width: `${currentPercent}%` }} transition={{ duration: 0.3, ease: 'easeOut' }} />
                 </div>
 
                 {/* 任務列表 */}
-                <main className={cn("flex-1 overflow-y-auto px-2.5 py-2 space-y-1 custom-scrollbar", bg)}>
+                <main className={cn("poe-tasklist flex-1 overflow-y-auto px-2.5 py-2 space-y-1 custom-scrollbar", bg)}>
                     <AnimatePresence mode="wait">
                         <motion.div key={currentAct} initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }} transition={{ duration: 0.15 }} className="space-y-1">
                             {currentTasks.map((task, index) => {
@@ -1072,18 +1288,18 @@ const App = () => {
                                 return (
                                     <motion.div key={`${currentAct}_${index}`} initial={{ opacity: 0, y: 6 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * 0.02 }}
                                         whileTap={{ scale: 0.98 }} onClick={() => toggleTask(task)}
-                                        className={cn("flex items-start gap-2 px-2.5 py-2 rounded-lg border cursor-pointer group transition-all",
+                                        className={cn("poe-task flex items-start gap-2 px-2.5 py-2 rounded-xl border cursor-pointer group transition-all",
                                             isSubTask ? "ml-6" : "",
                                             isChecked
-                                                ? dark ? "bg-green-500/10 border-green-500/20" : "bg-green-50/80 border-green-100"
-                                                : dark ? cn(cardBg, "border-transparent hover:border-blue-500/30") : "bg-white border-transparent hover:border-blue-100 shadow-[0_1px_2px_rgba(0,0,0,0.03)]"
+                                                ? "poe-task-done"
+                                                : "poe-task-open"
                                         )}>
-                                        <div className={cn("mt-0.5 w-4 h-4 rounded-[4px] border-[1.5px] flex items-center justify-center transition-all shrink-0",
-                                            isChecked ? "bg-[#34a853] border-[#34a853] text-white" : dark ? "bg-transparent border-gray-600 group-hover:border-blue-400" : "bg-white border-gray-300 group-hover:border-[#1a73e8]"
+                                        <div className={cn("poe-checkbox mt-0.5 w-4 h-4 rounded-[5px] border-[1.5px] flex items-center justify-center transition-all shrink-0",
+                                            isChecked ? "poe-checkbox-done" : "poe-checkbox-open"
                                         )}>
                                             {isChecked && <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}><Check size={10} strokeWidth={4} /></motion.div>}
                                         </div>
-                                        <span style={{ fontSize: `${fontSize}px`, fontFamily: fontFamily, fontWeight: fontWeight }} className={cn("leading-relaxed select-none transition-all",
+                                        <span style={{ fontSize: `${fontSize}px`, fontFamily: TASK_FONT_FAMILY }} className={cn("leading-relaxed select-none transition-all",
                                             isChecked ? dark ? "text-gray-600 line-through" : "text-gray-400 line-through" : ""
                                         )}>
                                             {displayTask}
@@ -1107,11 +1323,11 @@ const App = () => {
             {/* ===== 攻略編輯器 ===== */}
             <AnimatePresence>
                 {showEditor && (
-                    <GuideEditor guideData={guideData} onSave={handleGuideSave} onClose={() => setShowEditor(false)} onReset={handleGuideReset} dark={dark} />
+                    <GuideEditor guideData={guideData} guideMeta={activeGuide} onSave={handleGuideSave} onClose={() => setShowEditor(false)} onReset={handleGuideReset} dark={dark} />
                 )}
             </AnimatePresence>
 
-            {/* ===== 速查表視窗 ===== */}
+            {/* ===== 快捷圖片視窗 ===== */}
             <AnimatePresence>
                 {!isElectron && showCheatsheet && (
                     <CheatsheetViewer images={cheatsheets} onClose={() => setShowCheatsheet(false)} hotkeyLabel={hotkeys.cheatsheet} />

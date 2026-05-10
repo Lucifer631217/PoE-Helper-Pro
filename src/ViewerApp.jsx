@@ -5,6 +5,25 @@ export default function ViewerApp() {
     const [data, setData] = useState({ images: [], hotkeyLabel: '' });
 
     useEffect(() => {
+        const applyFontScale = () => {
+            try {
+                const saved = JSON.parse(localStorage.getItem('poe_helper_config') || '{}');
+                const fontSize = Number.isFinite(saved.fontSize) ? saved.fontSize : 13;
+                document.documentElement.style.setProperty('--poe-ui-scale', String(fontSize / 13));
+            } catch (e) {
+                document.documentElement.style.setProperty('--poe-ui-scale', '1');
+            }
+        };
+
+        applyFontScale();
+        window.addEventListener('storage', applyFontScale);
+        return () => {
+            window.removeEventListener('storage', applyFontScale);
+            document.documentElement.style.removeProperty('--poe-ui-scale');
+        };
+    }, []);
+
+    useEffect(() => {
         if (!window.electronAPI) return;
 
         const params = new URLSearchParams(window.location.hash.split('?')[1]);
@@ -30,7 +49,7 @@ export default function ViewerApp() {
     };
 
     return (
-        <div className="w-screen h-screen bg-[#121212] flex flex-col font-sans relative">
+        <div className="poe-viewer w-screen h-screen flex flex-col font-sans relative">
             <CheatsheetViewer images={data.images} hotkeyLabel={data.hotkeyLabel} onClose={handleClose} />
         </div>
     );
