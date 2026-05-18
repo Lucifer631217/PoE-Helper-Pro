@@ -24,6 +24,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
     cleanupImages: (activeUrls) => ipcRenderer.send('cleanup-images', activeUrls),
     // 開啟圖片資料夾
     openImagesFolder: () => ipcRenderer.send('open-images-folder'),
+    // 匯入劇情攻略 Markdown
+    selectGuideMarkdown: () => ipcRenderer.invoke('select-guide-markdown'),
+    // 匯出劇情攻略 Markdown
+    saveGuideMarkdown: (data) => ipcRenderer.invoke('save-guide-markdown', data),
 
     // --- 快捷鍵 ---
     // 取得快捷鍵設定

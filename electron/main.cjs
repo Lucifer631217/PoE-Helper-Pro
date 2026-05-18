@@ -356,6 +356,34 @@ function createWindow() {
         return null;
     });
 
+    // --- IPC：攻略 Markdown 匯入/匯出 ---
+    ipcMain.handle('select-guide-markdown', async () => {
+        const result = await dialog.showOpenDialog(mainWindow, {
+            title: '匯入劇情攻略 Markdown',
+            properties: ['openFile'],
+            filters: [{ name: 'Markdown', extensions: ['md', 'markdown', 'txt'] }]
+        });
+        if (!result.canceled && result.filePaths.length > 0) {
+            const filePath = result.filePaths[0];
+            return {
+                filePath,
+                content: fs.readFileSync(filePath, 'utf-8')
+            };
+        }
+        return null;
+    });
+
+    ipcMain.handle('save-guide-markdown', async (event, { filename, content }) => {
+        const result = await dialog.showSaveDialog(mainWindow, {
+            title: '匯出劇情攻略 Markdown',
+            defaultPath: filename || 'poe-guide.md',
+            filters: [{ name: 'Markdown', extensions: ['md'] }]
+        });
+        if (result.canceled || !result.filePath) return { canceled: true };
+        fs.writeFileSync(result.filePath, content, 'utf-8');
+        return { canceled: false, filePath: result.filePath };
+    });
+
     // --- IPC：清理未使用的圖片 ---
     ipcMain.on('cleanup-images', (event, activeUrls) => {
         try {

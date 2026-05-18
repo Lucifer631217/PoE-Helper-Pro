@@ -18,6 +18,8 @@ import {
     Type,
     FileEdit,
     Save,
+    Upload,
+    Download,
     Undo2,
     Image as ImageIcon,
     ImagePlus,
@@ -40,107 +42,204 @@ function cn(...inputs) { return twMerge(clsx(inputs)); }
 import { CheatsheetViewer } from './CheatsheetViewer';
 
 const isElectron = !!(window.electronAPI && window.electronAPI.isElectron);
+const APP_VERSION = '3.0.0';
 
 // ============================================================
 // 預設攻略資料
 // ============================================================
-const DEFAULT_GUIDE = {
-    "第一章：獅眼守望": [
-        "● 絕望岩灘：殺死希拉克進城",
-        "● 暮光海灘：踩點 -> 炙熱鹽沼 (打破三個鳥蛋)",
-        "● 海潮地穴：踩點 -> 回暮光海灘 -> 海潮孤島",
-        "● 海潮孤島：殺酷寒之使拿醫藥箱 (回城領跑速水)",
-        "● 水聲之淵：殺死深淵巨蟹 (天賦點)",
-        "● 禁靈之獄下層：完成迷宮試煉①",
-        "● 禁靈之獄上層：殺死典獄長布魯圖斯",
-        "● 魅影船墓：找不滅之火 -> 殺費爾船長 (天賦點)",
-        "● 怨忿之窟深處：擊殺莫薇兒 (進第二章)"
-    ],
-    "第二章：森林營地": [
-        "● 獸穴：殺死白色巨獸 (領第二支水)",
-        "● 罪孽之殿第二層：完成試煉② -> 拿寶石",
-        "● 靜謐陵墓：完成試煉③ -> 拿黃金之手 (天賦點)",
-        "● 西部密林：殺巨蛛之母 -> 殺阿特力隊長 (天賦點)",
-        "● 盜賊任務：殺或幫阿莉雅/克雷頓/歐克 (天賦獎勵)",
-        "● 濕地：殺歐克 -> 移除樹根 -> 瓦爾廢墟",
-        "● 北部密林：踩點 -> 瀑布洞穴 (拿跑速工藝)",
-        "● 古金字塔：擊殺瓦爾超靈 (進第三章)"
-    ],
-    "第三章：薩恩營地": [
-        "● 火葬場：完成試煉④ -> 擊敗派蒂拿手鐲 (防禦工藝)",
-        "● 下水道：收集 3 個半身像 (天賦點)",
-        "● 市集地帶：黑石陵寢完成試煉⑤ (元素攻擊工藝)",
-        "● 激戰廣場：拿絲帶線軸 -> 不朽海港拿亞硫酸",
-        "● 日耀神殿：與達拉對話拿煉獄之粉 (火傷工藝)",
-        "● 月影神殿：擊退派蒂拿神塔之鑰 (電傷工藝)",
-        "● 皇家花園：完成試煉⑥ -> 拿全能力工藝",
-        "● 圖書館：找四張書頁 (解鎖寶石購買)",
-        "● 塔頂：擊殺神主 (進第四章)"
-    ],
-    "第四章：統治者之殿": [
-        "● 乾凅湖岸：擊殺福爾 (拿紅旗)",
-        "● 漆黑礦坑：釋放迪虛瑞特精神 (天賦點)",
-        "● 水晶礦脈：踩點 (拿冰傷工藝)",
-        "● 岡姆的堡壘：擊殺岡姆拿憤怒之眼 (連線工藝)",
-        "● 大競技場：擊殺德拉索拿慾望之眼 (插槽工藝)",
-        "● 獸腹：擊殺派蒂 (元素抗性工藝)",
-        "● 育靈之室：殺德瑞/馬雷葛羅/薛朗",
-        "● 黑靈核心：擊殺馬拉凱 (進第五章)"
-    ],
-    "第五章：監守高塔": [
-        "● 鎮壓地帶：拿探測棒 -> 殺判官卡斯蒂克斯",
-        "● 無罪之室：擊殺聖宗與善",
-        "● 葬骨禮堂：拿純淨之印 (天賦點/工藝)",
-        "● 聖物間：拿齊三個聖物 (天賦點)",
-        "● 聖堂屋頂：擊殺奇塔弗 (抗性 -30%)"
-    ],
-    "第六章：獅眼守望 (重返)": [
-        "● 絕望岩灘：全清圖 (解鎖莉莉全寶石)",
-        "● 炙熱鹽沼：擊殺拜恥女王 (拿征服之眼)",
-        "● 卡魯堡壘：擊殺圖克瑪哈 (天賦點/工藝)",
-        "● 禁靈之獄：完成試煉⑦ -> 殺薜朗",
-        "● 災變峽谷：擊殺艾貝拉斯 (天賦點)",
-        "● 濕地：擊殺傀儡女王瑞斯拉薩 (天賦點)",
-        "● 絕望烽塔：點火送黑旗 (工藝)",
-        "● 海洋王座：擊殺海洋王 (進第七章)"
-    ],
-    "第七章：橋墩營地": [
-        "● 靜謐陵墓：完成試煉⑧ -> 拿馬雷葛羅的地圖",
-        "● 罪孽之殿：放入地圖進書房 -> 殺馬雷葛羅拿毒液",
-        "● 罪孽之殿第二層：完成試煉⑨",
-        "● 絕望之巢：擊殺葛魯斯寇 (天賦點)",
-        "● 驚魂樹洞：抓 7 隻螢火蟲",
-        "● 堤道：拿奇夏拉之星 (天賦點/工藝)",
-        "● 艾爾卡莉之網：擊殺艾爾卡莉 (進第八章)"
-    ],
-    "第八章：薩恩營地 (重返)": [
-        "● 德瑞的腐化池：擊殺德瑞",
-        "● 甦醒奇點：擊殺托爾曼 (天賦點)",
-        "● 糧儲關口：擊殺古靈軍團 (天賦點)",
-        "● 日耀神殿：擊殺諸神晨曦 (日耀之石/工藝)",
-        "● 月耀神殿：擊殺諸神黃昏 (月影之石/工藝)",
-        "● 大浴場：完成試煉⑩ (工藝)",
-        "● 恐懼之沼：擊殺伊果 (天賦點)",
-        "● 天壇：擊殺日耀與月影雙神 (進第九章)"
-    ],
-    "第九章：統治者之殿 (重返)": [
-        "● 瓦斯堤里荒漠：找風暴之刃 (工藝)",
-        "● 沸騰湖泊：殺巨蜥拿蜥毒 (工藝)",
-        "● 沙瀑流坑：擊殺夏卡莉女神 (天賦點)",
-        "● 隧道遺跡：完成試煉⑪ (工藝)",
-        "● 颶風神殿：擊殺卡洛翰 (天賦點)",
-        "● 煉油廠：殺艾達將軍拿查爾森之粉",
-        "● 黑靈之核：擊殺墮道三巨頭 (進第十章)"
-    ],
-    "第十章：奧瑞亞的碼頭": [
-        "● 聖堂屋頂：救班恩",
-        "● 葬骨禮堂：完成試煉⑫ (天賦點/工藝)",
-        "● 鎮壓地帶：擊殺范尼達 (天賦點)",
-        "● 褻瀆之室：擊殺伊爾莉斯 (純淨之杖/工藝)",
-        "● 祭壇：擊殺奇塔弗 (抗性再 -30%)",
-        "※ 終章提醒：打 /passives 確認 24 點天賦是否拿齊！"
-    ]
-};
+function parseBuiltInGuideText(text) {
+    const guide = {};
+    let currentTitle = '';
+
+    text.trim().replace(/\r\n/g, '\n').split('\n').forEach((rawLine) => {
+        const line = rawLine.trim();
+        if (!line) return;
+
+        const heading = line.match(/^##\s+(.+)$/);
+        if (heading) {
+            currentTitle = heading[1].trim();
+            guide[currentTitle] = [];
+            return;
+        }
+
+        if (!currentTitle) return;
+        const task = line.replace(/^\d+[.)]\s*/, '').trim();
+        if (task) guide[currentTitle].push(task.startsWith('※') ? task : `● ${task}`);
+    });
+
+    return guide;
+}
+
+const DEFAULT_GUIDE = parseBuiltInGuideText(`
+## 第一章
+1. 延岸跑，路上開箱子拿技能石，開門進城 。
+2. 出城到 暮光海灘，不打小怪一直跑到傳送點 。
+3. 跑到 炙熱鹽沼，開始打怪並拿三個螺開路，進 海潮地穴 踩傳送點 。
+4. 傳送回 暮光海灘，往下跑到 海潮孤島，殺拿醫藥箱 。
+5. 回城找人拿跑藥和技能石 。
+6. 傳送到 海潮地穴，跑到中間開傳送門（或水聲之淵門口開門，別進去一會兒才來）。
+7. 形往上跑到 沉寂海崖 踩點，殺掉圖騰跑進 碎岩山坡 。
+8. 踩點後一路跑到 禁靈之獄下層，走幾步踩點回城 。
+9. 走傳送門回到 海潮地穴，往剛才出口相反的方向跑去地洞二層 水聲之淵，殺蟹（天賦點任務）。
+10. 回城傳送去 禁靈之獄下層 (帝王迷宮試煉1) 。
+11. 解完試煉出來一路跑去上層殺 典獄長 。
+12. 殺完出口踩點回城拿位移技能 。
+13. 傳送 監獄大門，跑到 魅影船墓 踩傳送點 。
+14. 下 魅影船墓洞穴 拿任務物品，跑上地面。往上一直跑到 怨憤之窟 。
+15. 踩點傳送回 魅影船墓，向右找到船長殺之（天賦點任務）。
+16. 傳送回 怨憤之窟，向右跑到 怨憤之窟深處，向右跑，殺關底首領（職業玩家到這裡20分鐘左右）。
+
+## 第二章
+1. 往上跑到森林營地 。
+2. 出城跑到 前哨原野 。
+3. 往右進入 危機岔路，踩點回城回到 前哨原野 。
+4. 在地圖中找到 獸穴，殺白野獸 。
+5. 找人拿跑瓶 。
+6. 傳送去 危機岔路，沿路往左上跑進入 罪孽之殿 。
+7. 中心傳送點的右上方進入 罪孽之殿二層 (帝王迷宮試煉2) 。
+8. 解完迷宮出來殺掉第二層的首領 。
+9. 回城向左穿過 河道（踩傳送點），沿路跑進入 西部密林 。
+10. 沿路去踩點，然後往右下跑到牆，延著牆往右上進入到 織網者巢穴 殺蜘蛛首領 。
+11. 回城傳送到 危機岔路，往右下過兩張圖到 寂靜陵墓一層 (帝王迷宮試煉3) 。
+12. 傳回 危機岔路，往右到 河畔斷橋，沿著路跑踩傳送點後到底殺掉盜賊 。
+13. 回城 河道，往上跑到 濕地，直走殺盜賊 。
+14. 在濕地跑踩點傳送 西部密林 。
+15. 走剩下的方向跑去幫忙或殺死艾莉亞（殺掉獲得2天賦點）。
+16. 沿著牆跑去路口殺黑旗軍回森林營地找艾米爾拿開路道具 。
+17. 傳送到 濕地，往上開樹根進入 瓦爾廢墟，過通道到達 北部密林 踩點 。
+18. 傳送回第一章獅眼守望拿天賦點 。
+19. 傳到 北部密林 沿著牆跑到 瀑布洞穴（注意，不是驚魂樹洞）(跑速工藝)，穿過它來到 古金字塔 。
+20. 上樓頂殺首領 。
+21. 回城傳送去第三章（37分鐘左右）。
+
+## 第三章
+1. 往上跑與人對話然後進入 。
+2. 進城以後直接從上面的出口進入 貧民窟 。
+3. 穿過 貧民窟 到 火葬場 (帝王迷宮試煉4) 。
+4. 解完試煉出來殺派蒂，回程拿下水道鑰匙 。
+5. 回 貧民窟，進入下水道 。
+6. 拿了3個半身像（天賦點任務）再跑出 市集地帶 踩點 。
+7. 進入 黑石陵墓一層 (帝王迷宮試煉5) 。
+8. 傳送回市集，直接跑到 激戰廣場 。
+9. 踩點，旁邊貨車拿任務物品，往上跑進 不朽海港 拿硫酸 。
+10. 回城，拿技能書 。
+11. 傳送 激戰廣場，往右上進入 日曜神殿 。
+12. 跑到2樓對話拿項鍊和任務物品 。
+13. 傳回下水道，往左去 烏旗兵營 踩點 。
+14. 往上跑殺掉將軍，繼續往上跑進入 月影神殿 。
+15. 跑到二樓殺派蒂 。
+16. 回城拿獎勵，去藏身處工藝補電抗 。
+17. 傳送 烏旗兵營，向右跑到 皇家花園，踩點後向左上跑 (帝王迷宮試煉6) 。
+18. 回到 皇家花園 往右跑進入 神權之塔 。
+19. 衝到頂殺神主（60分鐘左右）。
+
+## 第四章
+1. 向北直衝進城直接往左去 乾涸湖岸，殺掉福爾 。
+2. 回城，跑左邊去 漆黑礦坑 。
+3. 下二層，先解救靈魂（天賦點任務），再去 水晶礦脈 。
+4. 踩點，進 德瑞索的環境 。
+5. 進 大競技場，踩了點就傳送回 水晶礦脈 。
+6. 進 岡姆的幻境，一路跑到底殺岡姆 。
+7. 回城，傳送去 大競技場，殺德瑞索 。
+8. 回城，傳送去 水晶礦脈，開啟 巨獸沼澤 。
+9. 衝沖沖，殺派蒂-3小王-馬拉凱 。
+10. 回城往上和人對話，跑出城開傳送器去第五章（1:20 左右）。
+
+## 第五章
+1. 奴役監牢 跑到底殺首領進城 。
+2. 直接走左邊出口去 鎮壓地帶，先找到探測棒（天賦點任務）。
+3. 鎮壓地帶 殺首領，去 奧瑞亞大廣場 。
+4. 往右上跑到 神聖大教堂 。
+5. 右邊形迴路走進 無罪之室 。
+6. 貼牆跑到 潔白聖殿 殺爆伊爾莉斯 。
+7. 右下出門跑去 焚燒大教堂 。
+8. 向上跑個倒形迴路找到 大廣場廢墟 。
+9. 貼牆走左邊一點點路進入 葬骨禮堂（門口有傳送點）。
+10. 拿純淨之印，回城拿獎勵 。
+11. 去過帝王迷宮 。
+12. 傳送回  大廣場廢墟，往左過橋往左下進入 聖物間，拿到三件奇塔弗的折磨（天賦點任務）。
+13. 傳送回  大廣場廢墟，往左邊過橋左上找到去 聖堂屋頂。
+14. 直線跑去奇塔弗房間 。
+15. 打完去藏身處補抗性，然後找過劇情（1:40 左右）。
+
+## 第六章
+1. 右邊出去 暮光海灘，跑到 炙熱鹽沼 。
+2. 殺長老，直奔 卡魯堡壘 。
+3. 殺進卡魯堡壘，進入 破碎山脊 。
+4. 踩了點直接開回城卷，左邊出門全清 絕望岩灘 。
+5. 傳送 破碎山脊，跑到 禁靈之獄 (殘酷帝王試煉1) 。
+6. 做完試煉直接跑 薛朗監塔 塔頂，殺薛朗的創造物 。
+7. 監獄大門 踩點，回城拿4連頭。
+8. 傳送 監獄大門，沿著牆進 飲焰者的災變山谷 殺羊人首領（天賦點任務）。
+9. 回到 監獄大門，沿路跑到 西部密林/河道，踩點，往左上進入 濕地
+10. 進入 纏盤蛛絲洞 殺傀儡女王首領（天賦點任務）。
+11. 傳送 河道，向東穿過 南部森林 進入 忿怒山洞 拿黑旗 。
+12. 穿過洞窟，到 絕望烽塔 。
+13. 送火炬，下樓和港口船邊的人對話航行到 海洋王堡礁 。
+14. 跑到首領房間打完，回城直接傳送到第七章（2:00 左右）。
+
+## 第七章
+1. 進入 橋墩營地 。
+2. 往上出城到 河畔斷橋，沿著路跑，遇到銀色吊墜就拿了（暴擊瓶任務），然後繼續回到路上跑到 危機叉路 。
+3. 在 危機叉路 沿著路跑到傳送點，往下進入 墮道遺跡 。
+4. 再沿路跑到 寂靜陵墓 (殘酷帝王試煉2) 。
+5. 做完試煉，繼續在寂靜陵墓裡面找到石棺下樓，拿任務物品馬雷格羅的地圖 。
+6. 回城傳送去 危機叉路，往上跑到 罪孽之殿一層 。
+7. 開地圖進去打死垃圾藝人 。
+8. 傳送回一層，跟斯科對話，進入 罪孽之殿二層 (殘酷帝王試煉3) 。
+9. 做完試煉通過二層跑 獸穴，進入 旱木原野。
+10. 沿著路跑到 堡壘營地 殺賊 。
+11. 進入 北部密林，在 驚魂樹洞 門口開個傳送門，然後貼牆跑到 堤道 。
+12. 在堤道找到 奇夏拉之星（天賦點任務），然後進 瓦爾城市 。
+13. 找到廢墟入口傳送點回城，傳送門進 驚魂樹洞 。
+14. 收集螢火蟲，下 絕望之巢 殺格魯絲克（天賦點任務）。
+15. 回城，拿3個技能書，傳送 瓦爾城市。
+16. 開 腐朽寺廟，直跑樓底殺蜘蛛首領。
+17. 殺完回城傳送第八章（2:20 左右）。
+
+## 第八章
+1. 到薩恩營地 。
+2. 走左下進入 腐化渠道，一路去殺首領 。
+3. 殺完出口往右，進入 啟程碼頭，拿十字架，然後找到 甦醒奇點 葬愛（天賦點任務），接著繼續前進到 糧儲關口 殺古靈軍團（天賦點任務）。
+4. 傳送回 腐化渠道 往左下，去 宏偉行道 。
+5. 從下面繞個大圈，進入 大浴堂 (無情帝王試煉1) 。
+6. 做完試煉，往相反的方向去 月影神廣場 踩點 。
+7. 回到 大浴堂 ，找到 空中花園 殺了水銀首領（天賦點任務）。
+8. 傳送 月影神廣場 一路往上，進入 月影神殿 。
+9. 下二層，殺首領拿月影之石 。
+10. 回城，傳送 月影神廣場 。
+11. 往下跑到 海港大橋，穿過大橋到 日曜神廣場 。
+12. 朝上一直跑到 日曜神殿，衝二層殺首領拿太陽 。
+13. 回城，傳月影神廣場，往下跑到 海港大橋。
+14. 進大橋的 天壇 首領房間殺之 。
+15. 出口，去第九章（2:40 左右）。
+
+## 第九章
+1. 可選跑殘酷帝王試煉，不急需昇華的也可以留到奇塔弗之前再跑 。
+2. 朝上跑出城去 下沉地區 ，進入 瓦斯提里荒漠 找到 風暴之刃 並踩點 。
+3. 形路線往上跑到 山麓 。
+4. 往上跑踩完點，繼續跑到 沸騰湖泊 殺了石化雞 。
+5. 傳送回  瓦斯提里荒漠 找到被風暴阻擋的路，回城拿風暴之瓶開路，然後殺了蝎子首領（天賦點任務）。
+6. 傳送去 山麓，向左跑進入 隧道遣跡 (無情帝王試煉2) 。
+7. 隧道遣跡向左上跑，踩點，然後回頭做完試煉再進入 廢棄挖石場 。
+8. 跑到地圖中間踩點，往左跑貼牆找到 颶風神殿 首領房間殺了（天賦點任務）。
+9. 回 廢棄挖石場 往上走進入 破損煉油廠 。
+10. 殺了 破損煉油廠 首領，拿粉末，回城傳送 廢棄挖石場 。
+11. 跟罪對話進入 獸穴之腹，一直跑進 腐敗之核 。
+12. 殺3小王+關底首領 。
+13. 回城傳送第十章（3:25）。
+
+## 第十章
+1. 上 聖堂之巔 救班恩 。
+2. 向右跑到 殘摧大廣場，向地圖右邊過橋踩點，進入 葬骨禮堂 (無情帝王試煉3) 。
+3. 傳送回 殘摧大廣場，（在尖塔出口下來這一側）左下跑到 鎮壓地帶，殺房間裡的叛徒首領（天賦點任務）。
+4. 傳送回 殘摧大廣場，不過橋向右邊跑到 焚燒大教堂 。
+5. 進入 褻瀆之室 。
+6. 繞一圈找到 潔白聖殿 殺純淨之神首領，拿 純淨之杖 回城 。
+7. 可選跑無情帝王試煉，也可以攢點裝備以後再跑 。
+8. 傳送 殘摧大廣場，向右走幾步跟善對話，過兩張圖殺奇塔弗（殺完後抗性總降30%）。
+※ 終章提醒：打 /passives 確認 24 點天賦是否拿齊！
+`);
 
 const POE2_GUIDE = {
     "PoE2 第一章：皆伐 (Clearfell)": [
@@ -233,30 +332,63 @@ function loadConfig() { try { const r = localStorage.getItem(STORAGE_KEY); if (r
 function saveConfig(d) { try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch (e) { } }
 function loadGuide() { try { const r = localStorage.getItem(GUIDE_KEY); if (r) return JSON.parse(r); } catch (e) { } return null; }
 function saveGuide(d) { try { localStorage.setItem(GUIDE_KEY, JSON.stringify(d)); } catch (e) { } }
+function migrateLegacyConfig(config) {
+    if (!config) return null;
+    const next = { ...config };
+    const moveGuideScopedState = (key) => {
+        if (!next[key]?.custom_legacy) return;
+        next[key] = { ...next[key], poe1: next[key].poe1 ?? next[key].custom_legacy };
+        delete next[key].custom_legacy;
+    };
+
+    if (next.activeGuideId === 'custom_legacy') next.activeGuideId = 'poe1';
+    moveGuideScopedState('actIdxByGuide');
+    moveGuideScopedState('checkedByGuide');
+    moveGuideScopedState('actImagesByGuide');
+    return next;
+}
 function cloneGuideLibrary(library) { return Object.fromEntries(Object.entries(library).map(([id, guide]) => [id, { ...guide, guide: { ...guide.guide } }])); }
+function migrateLegacyGuideIntoDefault(builtIns, saved = {}) {
+    const migrated = { ...saved };
+    const legacyGuide = migrated.custom_legacy?.guide || loadGuide();
+
+    Object.keys(builtIns).forEach((id) => {
+        if (migrated[id] && !migrated[id].customEdited) delete migrated[id];
+    });
+
+    if (legacyGuide && !migrated.poe1?.customEdited) {
+        migrated.poe1 = {
+            ...builtIns.poe1,
+            ...(migrated.poe1 || {}),
+            guide: legacyGuide,
+            description: '由舊版自訂攻略移轉為 PoE1 預設攻略',
+            customEdited: true
+        };
+    }
+
+    if (migrated.custom_legacy) delete migrated.custom_legacy;
+    try { localStorage.removeItem(GUIDE_KEY); } catch (e) { }
+
+    return migrated;
+}
 function loadGuideLibrary() {
     const builtIns = cloneGuideLibrary(BUILT_IN_GUIDES);
     try {
         const raw = localStorage.getItem(GUIDE_LIBRARY_KEY);
         if (raw) {
             const saved = JSON.parse(raw);
-            return { ...builtIns, ...saved };
+            const migrated = migrateLegacyGuideIntoDefault(builtIns, saved);
+            const library = { ...builtIns, ...migrated };
+            if (saved.custom_legacy || localStorage.getItem(GUIDE_KEY)) saveGuideLibrary(library);
+            return library;
         }
     } catch (e) { }
 
     const legacyGuide = loadGuide();
     if (legacyGuide) {
-        return {
-            ...builtIns,
-            custom_legacy: {
-                id: 'custom_legacy',
-                name: '舊版自訂攻略',
-                badge: '自訂',
-                description: '由舊版單一攻略移轉',
-                guide: legacyGuide,
-                custom: true
-            }
-        };
+        const library = { ...builtIns, ...migrateLegacyGuideIntoDefault(builtIns, { poe1: { ...builtIns.poe1, guide: legacyGuide, description: '由舊版自訂攻略移轉為 PoE1 預設攻略', customEdited: true } }) };
+        saveGuideLibrary(library);
+        return library;
     }
 
     return builtIns;
@@ -306,39 +438,39 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
                 className={cn("poe-modal w-full max-w-sm max-h-[80vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden",
-                    dark ? "text-gray-200 border" : "text-[#3c4043] border"
+                    dark ? "text-gray-200 border" : "text-[#e6d8bd] border"
                 )}
             >
                 {/* 標題 */}
-                <div className={cn("px-5 py-4 flex items-center justify-between border-b shrink-0", dark ? "border-gray-700 bg-[#323336]" : "bg-gray-50 border-gray-200")}>
+                <div className="poe-modal-header px-5 py-4 flex items-center justify-between border-b shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-indigo-500/10 flex items-center justify-center text-indigo-500">
+                        <div className="poe-modal-icon w-8 h-8 rounded-lg flex items-center justify-center">
                             <Search size={16} />
                         </div>
                         <div>
                             <span className="text-sm font-bold block">正規表示式</span>
-                            <p className="text-[10px] text-gray-500 font-medium">點擊標籤即可自動複製字串</p>
+                            <p className="poe-modal-subtitle text-[10px] font-medium">點擊標籤即可自動複製字串</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-500/10 rounded-full transition-colors"><X size={18} /></button>
+                    <button onClick={onClose} className="poe-modal-close p-2 rounded-full transition-colors"><X size={18} /></button>
                 </div>
 
                 {/* 列表 */}
-                <div className={cn("flex-1 overflow-y-auto px-4 py-3 space-y-2 custom-scrollbar", dark ? "bg-[#202124]" : "bg-[#f8f9fa]")}>
+                <div className="poe-modal-body flex-1 overflow-y-auto px-4 py-3 space-y-2 custom-scrollbar">
                     {regexes.length === 0 && (
-                        <div className="text-center py-6 text-xs text-gray-500">目前沒有設定任何正規表示式</div>
+                        <div className="poe-modal-empty text-center py-6 text-xs">目前沒有設定任何正規表示式</div>
                     )}
                     {regexes.map(r => (
-                        <div key={r.id} className={cn("flex items-center gap-2 p-2 rounded-xl border transition-all", dark ? "bg-[#292a2d] border-gray-700" : "bg-white border-gray-200 shadow-sm")}>
+                        <div key={r.id} className="poe-modal-list-card flex items-center gap-2 p-2 rounded-xl border transition-all">
                             {isEditing ? (
                                 <div className="flex-1 flex flex-col gap-1.5">
-                                    <input value={r.name} onChange={e => handleUpdate(r.id, 'name', e.target.value)} placeholder="標籤名稱" className={cn("text-xs px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-500", dark ? "bg-white/5 text-gray-200 border border-white/10" : "bg-black/5 text-gray-800 border-none")} />
-                                    <input value={r.regex} onChange={e => handleUpdate(r.id, 'regex', e.target.value)} placeholder="正規表示式字串" className={cn("text-[10px] font-mono px-2 py-1 rounded focus:outline-none focus:ring-1 focus:ring-blue-500", dark ? "bg-white/5 text-gray-400 border border-white/10" : "bg-black/5 text-gray-500 border-none")} />
+                                    <input value={r.name} onChange={e => handleUpdate(r.id, 'name', e.target.value)} placeholder="標籤名稱" className="poe-modal-input text-xs px-2 py-1 rounded focus:outline-none focus:ring-1" />
+                                    <input value={r.regex} onChange={e => handleUpdate(r.id, 'regex', e.target.value)} placeholder="正規表示式字串" className="poe-modal-input text-[10px] font-mono px-2 py-1 rounded focus:outline-none focus:ring-1" />
                                 </div>
                             ) : (
                                 <button onClick={() => handleCopy(r)} className="flex-1 flex items-center justify-between text-left px-2 py-1.5 hover:bg-black/5 dark:hover:bg-white/5 rounded-lg transition-colors group">
                                     <span className="text-xs font-bold">{r.name}</span>
-                                    <Copy size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-blue-500" />
+                                    <Copy size={12} className="opacity-0 group-hover:opacity-100 transition-opacity text-amber-300" />
                                 </button>
                             )}
                             {isEditing && (
@@ -347,19 +479,19 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
                         </div>
                     ))}
                     {isEditing && (
-                        <button onClick={handleAdd} className="w-full py-2 flex items-center justify-center gap-1.5 text-xs text-blue-500 hover:bg-blue-500/10 rounded-xl border border-dashed border-blue-500/30 transition-colors">
+                        <button onClick={handleAdd} className="w-full py-2 flex items-center justify-center gap-1.5 text-xs text-amber-300 hover:bg-red-500/10 rounded-xl border border-dashed border-red-500/30 transition-colors">
                             <Plus size={14} /> 新增正規表示式
                         </button>
                     )}
                 </div>
 
                 {/* 底部 */}
-                <div className={cn("px-5 py-3 flex items-center justify-between border-t shrink-0 select-none", dark ? "border-gray-700 bg-[#323336]" : "border-gray-200 bg-gray-50")}>
-                    <button onClick={() => setIsEditing(!isEditing)} className={cn("flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors border", isEditing ? (dark ? "bg-blue-500/20 text-blue-400 border-blue-500/30" : "bg-blue-50 text-blue-600 border-blue-200") : (dark ? "text-gray-400 border-transparent hover:bg-gray-700" : "text-gray-600 border-transparent hover:bg-gray-200"))}>
+                <div className="poe-modal-footer px-5 py-3 flex items-center justify-between border-t shrink-0 select-none">
+                    <button onClick={() => setIsEditing(!isEditing)} className={cn("poe-modal-secondary-btn flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors border", isEditing ? "poe-modal-secondary-btn-active" : "")}>
                         {isEditing ? <Check size={14} /> : <FileEdit size={14} />} {isEditing ? '完成編輯' : '編輯列表'}
                     </button>
                     {!isEditing && (
-                        <div className="flex items-center gap-1.5 px-2 py-1 bg-indigo-500/10 text-indigo-500 rounded text-[10px] font-bold border border-indigo-500/20">
+                        <div className="flex items-center gap-1.5 px-2 py-1 bg-red-500/10 text-amber-300 rounded text-[10px] font-bold border border-red-500/25">
                             <kbd>F8</kbd> 快捷鍵
                         </div>
                     )}
@@ -371,35 +503,109 @@ const RegexModal = ({ regexes, setRegexes, onClose, dark, toast }) => {
 
 // 快捷圖片視窗已重構至獨立組件
 
+const stripTaskMarker = (line) => {
+    const match = line.match(/^(\s*)(?:[-*+●•]|\d+[.)])\s+(?:\[[ xX]\]\s*)?(.*)$/);
+    if (!match) return line.trimEnd();
+
+    const indent = match[1].length > 0 ? '  ' : '';
+    return `${indent}● ${match[2].trim()}`;
+};
+
+const markdownToGuide = (text) => {
+    const guide = {};
+    let currentTitle = '';
+    let currentTasks = [];
+    let inFence = false;
+
+    const commitChapter = () => {
+        if (!currentTitle) return;
+        const tasks = currentTasks.map(task => task.trimEnd()).filter(Boolean);
+        if (tasks.length > 0) guide[currentTitle] = tasks;
+    };
+
+    text.replace(/\r\n/g, '\n').split('\n').forEach((rawLine) => {
+        const line = rawLine.trimEnd();
+        if (/^\s*```/.test(line) || /^\s*~~~/.test(line)) {
+            inFence = !inFence;
+            return;
+        }
+        if (inFence) return;
+
+        const heading = line.match(/^\s{0,3}#{1,6}\s+(.+?)\s*#*\s*$/);
+        if (heading) {
+            commitChapter();
+            currentTitle = heading[1].trim();
+            currentTasks = [];
+            return;
+        }
+
+        if (!line.trim()) return;
+
+        if (!currentTitle) currentTitle = '劇情攻略';
+        currentTasks.push(stripTaskMarker(line));
+    });
+
+    commitChapter();
+    return guide;
+};
+
+const guideToMarkdown = (guide) => {
+    return Object.entries(guide).map(([chapter, tasks]) => {
+        return `## ${chapter}\n${tasks.join('\n')}`;
+    }).join('\n\n');
+};
+
 const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset, dark }) => {
     // 將 guide 物件轉為可編輯的文字格式
-    const guideToText = (guide) => {
-        return Object.entries(guide).map(([chapter, tasks]) => {
-            return `## ${chapter}\n${tasks.join('\n')}`;
-        }).join('\n\n');
-    };
-
-    const textToGuide = (text) => {
-        const guide = {};
-        const chapters = text.split(/^## /m).filter(Boolean);
-        for (const ch of chapters) {
-            const lines = ch.trim().split('\n');
-            const title = lines[0].trim();
-            const tasks = lines.slice(1).map(l => {
-                if (/^\s+/.test(l) || l.trimStart().startsWith('-') || l.trimStart().startsWith('>')) return l.trimEnd();
-                return l.trim();
-            }).filter(Boolean);
-            if (title && tasks.length > 0) guide[title] = tasks;
-        }
-        return guide;
-    };
-
-    const [text, setText] = useState(guideToText(guideData));
+    const [text, setText] = useState(guideToMarkdown(guideData));
     const [error, setError] = useState('');
+    const guideFileInputRef = useRef(null);
+
+    const importMarkdownText = (markdown) => {
+        const parsed = markdownToGuide(markdown);
+        if (Object.keys(parsed).length === 0) {
+            setError('無法讀取 Markdown：至少需要一個標題與任務內容');
+            return;
+        }
+        setText(guideToMarkdown(parsed));
+        setError('');
+    };
+
+    const handleImportMarkdown = async () => {
+        if (isElectron) {
+            const result = await window.electronAPI.selectGuideMarkdown();
+            if (result?.content) importMarkdownText(result.content);
+            return;
+        }
+        guideFileInputRef.current?.click();
+    };
+
+    const handleBrowserMarkdown = async (event) => {
+        const file = event.target.files?.[0];
+        if (file) importMarkdownText(await file.text());
+        event.target.value = '';
+    };
+
+    const handleExportMarkdown = async () => {
+        const filename = `${guideMeta?.id || 'poe-guide'}.md`;
+        if (isElectron) {
+            const result = await window.electronAPI.saveGuideMarkdown({ filename, content: text });
+            if (result?.canceled === false) setError('');
+            return;
+        }
+
+        const blob = new Blob([text], { type: 'text/markdown;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = filename;
+        link.click();
+        URL.revokeObjectURL(url);
+    };
 
     const handleSave = () => {
         try {
-            const parsed = textToGuide(text);
+            const parsed = markdownToGuide(text);
             const keys = Object.keys(parsed);
             if (keys.length === 0) { setError('至少需要一個章節'); return; }
             onSave(parsed);
@@ -412,35 +618,36 @@ const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset, dark }) =
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
                 className={cn("poe-modal w-full h-full max-w-2xl max-h-[90vh] rounded-2xl shadow-2xl flex flex-col overflow-hidden",
-                    dark ? "text-gray-200 border" : "text-[#3c4043] border"
+                    dark ? "text-gray-200 border" : "text-[#e6d8bd] border"
                 )}
             >
                 {/* 編輯器標題 */}
-                <div className={cn("px-5 py-4 flex items-center justify-between border-b shrink-0", dark ? "border-gray-700 bg-[#323336]" : "bg-gray-50 border-gray-200")}>
+                <div className="poe-modal-header px-5 py-4 flex items-center justify-between border-b shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-500">
+                        <div className="poe-modal-icon w-8 h-8 rounded-lg flex items-center justify-center">
                             <FileEdit size={18} />
                         </div>
                         <div>
                             <span className="text-sm font-bold block">編輯 {guideMeta?.name || '攻略'} 內容</span>
-                            <p className="text-[10px] text-gray-500 font-medium">只會修改目前選取的攻略</p>
+                            <p className="poe-modal-subtitle text-[10px] font-medium">支援 .md 匯入/匯出，只會修改目前選取的攻略</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-500/10 rounded-full transition-colors"><X size={18} /></button>
+                    <button onClick={onClose} className="poe-modal-close p-2 rounded-full transition-colors"><X size={18} /></button>
                 </div>
 
                 {/* 格式說明 */}
-                <div className={cn("px-5 py-2.5 text-[11px] shrink-0 border-b flex items-center gap-2", dark ? "bg-[#1e1f22] text-gray-400 border-gray-700" : "bg-blue-50/30 text-blue-600 border-blue-100/50")}>
-                    <span className="font-bold bg-blue-500 text-white px-1.5 py-0.5 rounded-[4px] text-[9px]">TIPS</span>
-                    <span>格式：使用 <code className="bg-blue-500/10 px-1 rounded font-mono">## 章節名稱</code> 作為標題，下方每行輸入一個任務內容。</span>
+                <div className={cn("px-5 py-2.5 text-[11px] shrink-0 border-b flex items-center gap-2", dark ? "bg-[#160f0d] text-amber-100/70 border-red-900/40" : "bg-[#1d130f] text-amber-100/70 border-red-900/40")}>
+                    <span className="font-bold bg-red-800 text-amber-100 px-1.5 py-0.5 rounded-[4px] text-[9px]">TIPS</span>
+                    <span>格式：支援 Markdown <code className="bg-red-500/10 px-1 rounded font-mono"># / ## 標題</code> 與 <code className="bg-red-500/10 px-1 rounded font-mono">- 任務</code> 清單。</span>
                 </div>
 
                 {/* 編輯區 */}
                 <div className="flex-1 overflow-hidden p-1 relative flex flex-col">
+                    <input ref={guideFileInputRef} type="file" accept=".md,.markdown,text/markdown,text/plain" className="hidden" onChange={handleBrowserMarkdown} />
                     <textarea
                         value={text} onChange={e => { setText(e.target.value); setError(''); }}
-                        className={cn("w-full flex-1 px-5 py-4 text-[13px] font-mono resize-y outline-none leading-relaxed custom-scrollbar min-h-[300px] caret-blue-500 focus:ring-1 focus:ring-blue-500/20",
-                            dark ? "bg-[#1e1f22] text-gray-300 placeholder-gray-600 border-gray-700" : "bg-white text-[#3c4043] placeholder-gray-400 border-gray-100"
+                        className={cn("w-full flex-1 px-5 py-4 text-[13px] font-mono resize-y outline-none leading-relaxed custom-scrollbar min-h-[300px] caret-red-400 focus:ring-1 focus:ring-red-500/20",
+                            dark ? "bg-[#120d0b] text-amber-100 placeholder-amber-100/30 border-red-900/40" : "bg-[#1a120f] text-amber-100 placeholder-amber-100/30 border-red-900/40"
                         )}
                         placeholder="## 第一章：獅眼守望&#10;● 任務內容一&#10;● 任務內容二"
                         spellCheck={false}
@@ -449,23 +656,29 @@ const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset, dark }) =
                 </div>
 
                 {/* 錯誤提示 */}
-                {error && <div className="px-5 py-2 text-xs text-red-500 bg-red-50/50 border-t border-red-100 font-medium shrink-0">{error}</div>}
+                {error && <div className="px-5 py-2 text-xs text-red-300 bg-red-950/40 border-t border-red-900/50 font-medium shrink-0">{error}</div>}
 
                 {/* 底部按鈕 */}
-                <div className={cn("px-5 py-4 flex items-center justify-between border-t shrink-0 bg-gray-50/30", dark ? "border-gray-700" : "border-gray-200")}>
-                    <button onClick={onReset}
-                        className={cn("flex items-center gap-2 px-4 py-2 text-xs rounded-xl transition-all active:scale-95 border border-transparent hover:border-gray-200 shadow-sm",
-                            dark ? "text-gray-400 hover:bg-gray-700 hover:text-gray-200" : "text-[#5f6368] hover:bg-gray-100"
-                        )}>
-                        <Undo2 size={14} /><span>還原此攻略</span>
-                    </button>
+                <div className="poe-modal-footer px-5 py-4 flex items-center justify-between border-t shrink-0">
+                    <div className="flex gap-2">
+                        <button onClick={onReset}
+                            className="poe-modal-secondary-btn flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all active:scale-95 border shadow-sm">
+                            <Undo2 size={14} /><span>還原</span>
+                        </button>
+                        <button onClick={handleImportMarkdown}
+                            className="poe-modal-secondary-btn flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all active:scale-95 border shadow-sm">
+                            <Upload size={14} /><span>匯入 .md</span>
+                        </button>
+                        <button onClick={handleExportMarkdown}
+                            className="poe-modal-secondary-btn flex items-center gap-2 px-3 py-2 text-xs rounded-xl transition-all active:scale-95 border shadow-sm">
+                            <Download size={14} /><span>匯出 .md</span>
+                        </button>
+                    </div>
                     <div className="flex gap-3">
                         <button onClick={onClose}
-                            className={cn("px-5 py-2 text-xs rounded-xl transition-all",
-                                dark ? "text-gray-400 hover:bg-gray-700" : "text-[#5f6368] hover:bg-gray-100"
-                            )}>取消</button>
+                            className="poe-modal-secondary-btn px-5 py-2 text-xs rounded-xl transition-all border">取消</button>
                         <button onClick={handleSave}
-                            className="flex items-center gap-2 px-6 py-2 text-xs text-white bg-[#1a73e8] hover:bg-[#1765cc] rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-500/20">
+                            className="flex items-center gap-2 px-6 py-2 text-xs text-amber-100 bg-[#8d1420] hover:bg-[#a91b26] rounded-xl transition-all active:scale-95 shadow-lg shadow-red-950/20">
                             <Save size={14} /><span>儲存攻略</span>
                         </button>
                     </div>
@@ -526,41 +739,39 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose, dark }) => {
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 20 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 20 }}
                 className={cn("poe-modal w-full max-w-xs rounded-2xl shadow-2xl flex flex-col overflow-hidden",
-                    dark ? "text-gray-200 border" : "text-[#3c4043] border"
+                    dark ? "text-gray-200 border" : "text-[#e6d8bd] border"
                 )}
             >
                 {/* 標題 */}
-                <div className={cn("px-5 py-4 flex items-center justify-between border-b shrink-0", dark ? "border-gray-700 bg-[#323336]" : "bg-gray-50 border-gray-200")}>
+                <div className="poe-modal-header px-5 py-4 flex items-center justify-between border-b shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center text-amber-500">
+                        <div className="poe-modal-icon w-8 h-8 rounded-lg flex items-center justify-center">
                             <Keyboard size={16} />
                         </div>
                         <div>
                             <span className="text-sm font-bold block">自定義快捷鍵</span>
-                            <p className="text-[10px] text-gray-500 font-medium">點擊「錄入」後按下想設定的按鍵</p>
+                            <p className="poe-modal-subtitle text-[10px] font-medium">點擊「錄入」後按下想設定的按鍵</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="p-2 hover:bg-gray-500/10 rounded-full transition-colors"><X size={18} /></button>
+                    <button onClick={onClose} className="poe-modal-close p-2 rounded-full transition-colors"><X size={18} /></button>
                 </div>
 
                 {/* 快捷鍵列表 */}
-                <div className={cn("px-4 py-3 space-y-2", dark ? "bg-[#202124]" : "bg-[#f8f9fa]")}>
+                <div className="poe-modal-body px-4 py-3 space-y-2">
                     {Object.entries(HOTKEY_LABELS).map(([key, label]) => (
-                        <div key={key} className={cn("flex items-center justify-between p-3 rounded-xl border", dark ? "bg-[#292a2d] border-gray-700" : "bg-white border-gray-200 shadow-sm")}>
+                        <div key={key} className="poe-modal-list-card flex items-center justify-between p-3 rounded-xl border">
                             <span className="text-xs font-bold">{label}</span>
                             <div className="flex items-center gap-2">
                                 <kbd className={cn("text-xs px-2.5 py-1 rounded-lg font-mono font-bold min-w-[40px] text-center",
                                     recording === key
-                                        ? "bg-amber-500/20 text-amber-500 border border-amber-500/30 animate-pulse"
-                                        : dark ? "bg-gray-700 text-gray-300 border border-gray-600" : "bg-gray-100 text-gray-700 border border-gray-200"
+                                        ? "bg-red-500/20 text-amber-300 border border-red-500/30 animate-pulse"
+                                        : dark ? "bg-black/30 text-amber-100/80 border border-red-900/40" : "bg-black/25 text-amber-100/80 border border-red-900/40"
                                 )}>
                                     {recording === key ? '...' : draft[key]}
                                 </kbd>
                                 <button onClick={() => setRecording(recording === key ? null : key)}
-                                    className={cn("text-[10px] px-2 py-1 rounded-lg font-medium transition-all active:scale-95",
-                                        recording === key
-                                            ? "bg-red-500/20 text-red-400 hover:bg-red-500/30"
-                                            : "bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
+                                    className={cn("poe-modal-record-btn text-[10px] px-2 py-1 rounded-lg font-medium transition-all active:scale-95",
+                                        recording === key ? "poe-modal-record-btn-active" : ""
                                     )}>
                                     {recording === key ? '取消' : '錄入'}
                                 </button>
@@ -576,9 +787,9 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose, dark }) => {
                 </div>
 
                 {/* 底部 */}
-                <div className={cn("px-5 py-3 flex items-center justify-end gap-3 border-t shrink-0", dark ? "border-gray-700 bg-[#323336]" : "border-gray-200 bg-gray-50")}>
-                    <button onClick={onClose} className={cn("px-4 py-2 text-xs rounded-xl transition-all", dark ? "text-gray-400 hover:bg-gray-700" : "text-[#5f6368] hover:bg-gray-100")}>取消</button>
-                    <button onClick={() => onSave(draft)} className="flex items-center gap-2 px-5 py-2 text-xs text-white bg-[#1a73e8] hover:bg-[#1765cc] rounded-xl transition-all active:scale-95 shadow-lg shadow-blue-500/20">
+                <div className="poe-modal-footer px-5 py-3 flex items-center justify-end gap-3 border-t shrink-0">
+                    <button onClick={onClose} className="poe-modal-secondary-btn px-4 py-2 text-xs rounded-xl transition-all border">取消</button>
+                    <button onClick={() => onSave(draft)} className="flex items-center gap-2 px-5 py-2 text-xs text-amber-100 bg-[#8d1420] hover:bg-[#a91b26] rounded-xl transition-all active:scale-95 shadow-lg shadow-red-950/20">
                         <Save size={14} /><span>儲存</span>
                     </button>
                 </div>
@@ -596,9 +807,10 @@ const MAX_UI_FONT_SIZE = 20;
 const FONT_SIZE_OPTIONS = [10, 11, 12, 13, 14, 16, 18, 20];
 
 const App = () => {
-    const saved = loadConfig();
+    const saved = migrateLegacyConfig(loadConfig());
     const [guideLibrary, setGuideLibrary] = useState(() => loadGuideLibrary());
-    const initialGuideId = saved?.activeGuideId && guideLibrary[saved.activeGuideId] ? saved.activeGuideId : 'poe2';
+    const migratedLegacyToPoe1 = guideLibrary.poe1?.customEdited && guideLibrary.poe1?.description?.includes('舊版');
+    const initialGuideId = saved?.activeGuideId && guideLibrary[saved.activeGuideId] ? saved.activeGuideId : (migratedLegacyToPoe1 ? 'poe1' : 'poe2');
     const legacyGuideId = saved?.activeGuideId || 'poe1';
     const [activeGuideId, setActiveGuideId] = useState(initialGuideId);
     const [actIdxByGuide, setActIdxByGuide] = useState(saved?.actIdxByGuide ?? { [legacyGuideId]: saved?.last_act ?? 0 });
@@ -937,7 +1149,7 @@ const App = () => {
                     <div>
                         <h1 className="text-xs font-bold leading-none">
                             {activeGuide.name} · {completedTasks}/{totalTasks} ({progressPercent}%)
-                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v2.3.6</span>
+                            <span className="ml-1.5 opacity-50 font-normal text-[9px]">v{APP_VERSION}</span>
                             {updateStatus === 'downloaded' && (
                                 <span className="poe-update-badge ml-1.5 px-1 rounded-[4px] text-[8px] animate-pulse">UPDATE READY</span>
                             )}
@@ -1060,7 +1272,7 @@ const App = () => {
                                     className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
                                         "poe-action-secondary"
                                     )}>
-                                    <FileEdit size={12} /><span>自定義攻略</span>
+                                    <FileEdit size={12} /><span>劇情攻略</span>
                                 </button>
                                 <button onClick={() => { setShowRegex(true); setShowSettings(false); }}
                                     className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
@@ -1086,14 +1298,13 @@ const App = () => {
                                 </button>
                             </div>
 
-                            {isElectron && (
-                                <button onClick={() => { setShowHotkeySettings(true); setShowSettings(false); }}
-                                    className={cn("w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
-                                        "poe-action-secondary"
-                                    )}>
-                                    <Keyboard size={12} /><span>自訂快捷鍵</span>
-                                </button>
-                            )}
+                            <button onClick={() => { setShowHotkeySettings(true); setShowSettings(false); }}
+                                className={cn("w-full flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95",
+                                    "poe-action-secondary"
+                                )}
+                                title={isElectron ? "設定全域快捷鍵" : "瀏覽器預覽可調整顯示值，實際全域快捷鍵需使用 Electron 版"}>
+                                <Keyboard size={12} /><span>自訂快捷鍵</span>
+                            </button>
 
                             {/* 路線圖 & 快捷圖片 */}
                             <div className="grid grid-cols-2 gap-2">
@@ -1352,9 +1563,14 @@ const App = () => {
             <AnimatePresence>
                 {showHotkeySettings && (
                     <HotkeySettingsModal hotkeys={hotkeys} onSave={async (newHk) => {
-                        if (isElectron) { const result = await window.electronAPI.setHotkeys(newHk); setHotkeys(result); }
+                        if (isElectron) {
+                            const result = await window.electronAPI.setHotkeys(newHk);
+                            setHotkeys(result);
+                        } else {
+                            setHotkeys(newHk);
+                        }
                         setShowHotkeySettings(false);
-                        toast('快捷鍵已更新');
+                        toast(isElectron ? '快捷鍵已更新' : '快捷鍵顯示已更新，Electron 版才會註冊全域快捷鍵');
                     }} onClose={() => setShowHotkeySettings(false)} dark={dark} />
                 )}
             </AnimatePresence>
