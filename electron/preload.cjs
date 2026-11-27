@@ -62,6 +62,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
     updateViewerData: (id, data) => ipcRenderer.send('update-viewer-data', { id, data }),
     onUpdateViewerData: (callback) => ipcRenderer.on('update-viewer-data', (event, data) => callback(data)),
     offUpdateViewerData: () => ipcRenderer.removeAllListeners('update-viewer-data'),
+    saveImageDataUrl: (dataUrl) => ipcRenderer.invoke('save-image-data-url', dataUrl),
+    setViewerOpacity: (id, value) => ipcRenderer.send('set-viewer-opacity', { id, value }),
+    getViewerOpacity: (id) => ipcRenderer.invoke('get-viewer-opacity', id),
+    notifyViewerImagesChanged: (id, images) => ipcRenderer.send('viewer-images-changed', { id, images }),
+    onViewerImagesChanged: (callback) => ipcRenderer.on('viewer-images-changed', (event, payload) => callback(payload)),
+    offViewerImagesChanged: () => ipcRenderer.removeAllListeners('viewer-images-changed'),
 
     // --- 自動更新 ---
     checkForUpdates: () => ipcRenderer.send('check-for-updates'),

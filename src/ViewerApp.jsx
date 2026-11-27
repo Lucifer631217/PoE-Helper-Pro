@@ -3,6 +3,8 @@ import { CheatsheetViewer } from './CheatsheetViewer';
 
 export default function ViewerApp() {
     const [data, setData] = useState({ images: [], hotkeyLabel: '' });
+    const params = new URLSearchParams(window.location.hash.split('?')[1]);
+    const id = params.get('id') || 'cheatsheet';
 
     useEffect(() => {
         const applyFontScale = () => {
@@ -26,9 +28,6 @@ export default function ViewerApp() {
     useEffect(() => {
         if (!window.electronAPI) return;
 
-        const params = new URLSearchParams(window.location.hash.split('?')[1]);
-        const id = params.get('id');
-
         window.electronAPI.getViewerData(id).then(d => {
             if (d) setData(d);
         });
@@ -38,19 +37,28 @@ export default function ViewerApp() {
         });
 
         return () => window.electronAPI.offUpdateViewerData();
-    }, []);
+    }, [id]);
 
     const handleClose = () => {
         if (window.electronAPI) {
-            const params = new URLSearchParams(window.location.hash.split('?')[1]);
-            const id = params.get('id');
             window.electronAPI.closeViewer(id);
         }
     };
 
+    const handleImagesChange = (nextImages) => {
+        setData(prev => ({ ...prev, images: nextImages }));
+        window.electronAPI?.notifyViewerImagesChanged(id, nextImages);
+    };
+
     return (
         <div className="poe-viewer w-screen h-screen flex flex-col font-sans relative">
-            <CheatsheetViewer images={data.images} hotkeyLabel={data.hotkeyLabel} onClose={handleClose} />
+            <CheatsheetViewer
+                viewerId={id}
+                images={data.images}
+                hotkeyLabel={data.hotkeyLabel}
+                onImagesChange={handleImagesChange}
+                onClose={handleClose}
+            />
         </div>
     );
 }

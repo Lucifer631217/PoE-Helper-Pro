@@ -23,7 +23,6 @@ import {
     Download,
     Undo2,
     Image as ImageIcon,
-    ImagePlus,
     Search,
     Plus,
     Trash2,
@@ -47,7 +46,7 @@ function cn(...inputs) { return twMerge(clsx(inputs)); }
 import { CheatsheetViewer } from './CheatsheetViewer';
 
 const isElectron = !!(window.electronAPI && window.electronAPI.isElectron);
-const APP_VERSION = '1.0.0+20261127';
+const APP_VERSION = '1.0.1+20261127';
 
 // ============================================================
 // 預設攻略資料
@@ -349,7 +348,6 @@ function migrateLegacyConfig(config) {
     if (next.activeGuideId === 'custom_legacy') next.activeGuideId = 'poe1';
     moveGuideScopedState('actIdxByGuide');
     moveGuideScopedState('checkedByGuide');
-    moveGuideScopedState('actImagesByGuide');
     return next;
 }
 function cloneGuideLibrary(library) { return Object.fromEntries(Object.entries(library).map(([id, guide]) => [id, { ...guide, guide: { ...guide.guide } }])); }
@@ -405,7 +403,7 @@ function saveGuideLibrary(library) {
 // ============================================================
 // 任務文字語意高亮 (僅視覺呈現，不改動原始任務 key)
 // ============================================================
-const HIGHLIGHT_PAREN_RE = /([（(][^）)]+[）)])/g;
+const HIGHLIGHT_TOKEN_RE = /([（(][^）)]+[）)]|[\[【][^\]】]+[\]】])/g;
 
 function getSemanticTagClass(segment) {
     if (/天賦點|技能書/.test(segment)) return 'poe-tag-passive';
@@ -416,11 +414,42 @@ function getSemanticTagClass(segment) {
     return null;
 }
 
+function parseExplicitBracketTag(inner) {
+    const colorMatch = inner.match(/^(金|黃|青|綠|藍|紅)[:：]\s*(.+)$/);
+    if (colorMatch) {
+        const colorKey = colorMatch[1];
+        const label = colorMatch[2].trim();
+        const classMap = {
+            '金': 'poe-tag-passive',
+            '黃': 'poe-tag-passive',
+            '青': 'poe-tag-spirit',
+            '綠': 'poe-tag-spirit',
+            '藍': 'poe-tag-resist',
+            '紅': 'poe-tag-trial'
+        };
+        return { label, tagClass: classMap[colorKey] || 'poe-tag-passive' };
+    }
+    return { label: inner, tagClass: getSemanticTagClass(inner) || 'poe-tag-passive' };
+}
+
 function renderFormattedTask(rawTask) {
     const cleaned = rawTask.trimStart().replace(/^[●•]\s*/, '');
-    const parts = cleaned.split(HIGHLIGHT_PAREN_RE);
+    const parts = cleaned.split(HIGHLIGHT_TOKEN_RE);
     return parts.map((part, idx) => {
         if (!part) return null;
+        if (/^[\[【].+[\]】]$/.test(part)) {
+            const inner = part.slice(1, -1).trim();
+            if (inner) {
+                const { label, tagClass } = parseExplicitBracketTag(inner);
+                if (label) {
+                    return (
+                        <span key={idx} className={cn('poe-inline-badge', tagClass)}>
+                            {label}
+                        </span>
+                    );
+                }
+            }
+        }
         if (/^[（(].+[）)]$/.test(part)) {
             const tagClass = getSemanticTagClass(part);
             if (tagClass) {
@@ -447,9 +476,9 @@ const Toast = ({ message, visible }) => (
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: 14, scale: 0.96 }}
                 transition={{ duration: 0.16 }}
-                className="poe-toast fixed bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-full text-xs font-medium z-[70] flex items-center gap-2 whitespace-nowrap max-w-[90vw] truncate pointer-events-none"
+                className="poe-toast fixed bottom-5 left-1/2 -translate-x-1/2 px-4 py-2 rounded-[4px] text-xs font-medium z-[70] flex items-center gap-2 whitespace-nowrap max-w-[90vw] truncate pointer-events-none"
             >
-                <span className="w-1.5 h-1.5 rounded-full bg-amber-400 shrink-0" />
+                <span className="poe-toast-dot shrink-0">◆</span>
                 <span className="truncate">{message}</span>
             </motion.div>
         )}
@@ -475,10 +504,10 @@ const ConfirmModal = ({ title, message, confirmLabel = '確認', onConfirm, onCl
             <motion.div
                 initial={{ scale: 0.95, opacity: 0, y: 12 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 12 }}
                 onClick={(e) => e.stopPropagation()}
-                className="poe-modal w-full max-w-xs rounded-2xl border overflow-hidden"
+                className="poe-modal w-full max-w-xs rounded-[6px] border overflow-hidden"
             >
                 <div className="poe-modal-header px-4 py-3.5 flex items-center gap-2.5 border-b">
-                    <div className="poe-modal-icon w-7 h-7 rounded-lg flex items-center justify-center shrink-0">
+                    <div className="poe-modal-icon w-7 h-7 rounded-[4px] flex items-center justify-center shrink-0">
                         <AlertTriangle size={15} />
                     </div>
                     <span className="text-sm font-bold">{title}</span>
@@ -487,10 +516,10 @@ const ConfirmModal = ({ title, message, confirmLabel = '確認', onConfirm, onCl
                     {message}
                 </div>
                 <div className="poe-modal-footer px-4 py-3 flex items-center justify-end gap-2 border-t">
-                    <button onClick={onClose} className="poe-modal-secondary-btn px-3.5 py-1.5 text-xs rounded-xl border">
+                    <button onClick={onClose} className="poe-modal-secondary-btn px-3.5 py-1.5 text-xs rounded-[4px] border">
                         取消
                     </button>
-                    <button onClick={onConfirm} className="poe-danger-btn px-4 py-1.5 text-xs font-medium rounded-xl">
+                    <button onClick={onConfirm} className="poe-danger-btn px-4 py-1.5 text-xs font-medium rounded-[4px]">
                         {confirmLabel}
                     </button>
                 </div>
@@ -500,8 +529,27 @@ const ConfirmModal = ({ title, message, confirmLabel = '確認', onConfirm, onCl
 };
 
 // ============================================================
-// Vendor 正規表示式視窗
+// Vendor 正規表示式視窗 (預設繁體中文開荒常用清單)
 // ============================================================
+const DEFAULT_REGEXES = [
+    { id: 1, name: '跑速鞋', regex: '移動速度' },
+    { id: 2, name: 'PoE2 +技能等級', regex: '技能的等級' },
+    { id: 3, name: 'PoE2 精魂裝', regex: '精魂' },
+    { id: 4, name: '生命與抗性', regex: '最大生命|抗性' },
+    { id: 5, name: 'PoE2 回收材料 (品質)', regex: '品質' },
+    { id: 6, name: 'PoE1 跑速＋三色連', regex: '移動速度|r-g-b|r-b-g|g-r-b|g-b-r|b-r-g|b-g-r' },
+    { id: 7, name: 'PoE1 4連裝備', regex: '(\\w-){3}\\w' },
+    { id: 8, name: '法系武器 (法傷/施速/+技能)', regex: '技能寶石等級|法術傷害|施放速度' },
+    { id: 9, name: '物理武器 (物傷/攻速)', regex: '物理傷害|攻擊速度' }
+];
+
+const isUntouchedLegacyRegexes = (list) => (
+    Array.isArray(list) &&
+    list.length === 2 &&
+    list[0]?.name === '3連色 (紅綠藍)' &&
+    list[1]?.name === '跑速鞋 (10%以上)'
+);
+
 const RegexModal = ({ regexes, setRegexes, onClose, toast, hotkeyLabel }) => {
     const [isEditing, setIsEditing] = useState(false);
     const [copiedId, setCopiedId] = useState(null);
@@ -524,6 +572,10 @@ const RegexModal = ({ regexes, setRegexes, onClose, toast, hotkeyLabel }) => {
     const handleAdd = () => setRegexes([...regexes, { id: Date.now(), name: '新標籤', regex: '' }]);
     const handleUpdate = (id, k, v) => setRegexes(regexes.map(r => r.id === id ? { ...r, [k]: v } : r));
     const handleRemove = (id) => setRegexes(regexes.filter(r => r.id !== id));
+    const handleResetDefaults = () => {
+        setRegexes(DEFAULT_REGEXES.map(r => ({ ...r })));
+        toast('已還原預設正規表示式');
+    };
 
     return (
         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
@@ -532,12 +584,12 @@ const RegexModal = ({ regexes, setRegexes, onClose, toast, hotkeyLabel }) => {
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 16 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 16 }}
                 onClick={(e) => e.stopPropagation()}
-                className="poe-modal w-full max-w-sm max-h-[82vh] rounded-2xl border flex flex-col overflow-hidden"
+                className="poe-modal w-full max-w-sm max-h-[82vh] rounded-[6px] border flex flex-col overflow-hidden"
             >
                 {/* 標題 */}
                 <div className="poe-modal-header px-5 py-3.5 flex items-center justify-between border-b shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="poe-modal-icon w-8 h-8 rounded-lg flex items-center justify-center">
+                        <div className="poe-modal-icon w-8 h-8 rounded-[4px] flex items-center justify-center">
                             <Search size={16} />
                         </div>
                         <div>
@@ -545,7 +597,7 @@ const RegexModal = ({ regexes, setRegexes, onClose, toast, hotkeyLabel }) => {
                             <p className="poe-modal-subtitle text-[10px] font-medium">點擊標籤即可自動複製字串</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="poe-modal-close p-1.5 rounded-full transition-colors" title="關閉 (Esc)"><X size={17} /></button>
+                    <button onClick={onClose} className="poe-modal-close p-1.5 rounded-[4px] transition-colors" title="關閉 (Esc)"><X size={17} /></button>
                 </div>
 
                 {/* 列表 */}
@@ -554,41 +606,48 @@ const RegexModal = ({ regexes, setRegexes, onClose, toast, hotkeyLabel }) => {
                         <div className="poe-modal-empty text-center py-8 text-xs">目前沒有設定任何正規表示式</div>
                     )}
                     {regexes.map(r => (
-                        <div key={r.id} className="poe-modal-list-card flex items-center gap-2 p-2 rounded-xl border transition-all">
+                        <div key={r.id} className="poe-modal-list-card flex items-center gap-2 p-2 rounded-[4px] border transition-all">
                             {isEditing ? (
                                 <div className="flex-1 flex flex-col gap-1.5 min-w-0">
-                                    <input value={r.name} onChange={e => handleUpdate(r.id, 'name', e.target.value)} placeholder="標籤名稱" className="poe-modal-input text-xs px-2.5 py-1.5 rounded-lg focus:outline-none focus:ring-1" />
-                                    <input value={r.regex} onChange={e => handleUpdate(r.id, 'regex', e.target.value)} placeholder="正規表示式字串" className="poe-modal-input text-[10px] font-mono px-2.5 py-1.5 rounded-lg focus:outline-none focus:ring-1" />
+                                    <input value={r.name} onChange={e => handleUpdate(r.id, 'name', e.target.value)} placeholder="標籤名稱" className="poe-modal-input text-xs px-2.5 py-1.5 rounded-[4px] focus:outline-none focus:ring-1" />
+                                    <input value={r.regex} onChange={e => handleUpdate(r.id, 'regex', e.target.value)} placeholder="正規表示式字串" className="poe-modal-input text-[10px] font-mono px-2.5 py-1.5 rounded-[4px] focus:outline-none focus:ring-1" />
                                 </div>
                             ) : (
-                                <button onClick={() => handleCopy(r)} className="flex-1 flex items-center justify-between gap-2 text-left px-2 py-1.5 rounded-lg transition-colors group min-w-0">
+                                <button onClick={() => handleCopy(r)} className="flex-1 flex items-center justify-between gap-2 text-left px-2 py-1.5 rounded-[4px] transition-colors group min-w-0">
                                     <div className="min-w-0 flex-1">
                                         <span className="text-xs font-bold block truncate">{r.name}</span>
                                         <span className="poe-modal-subtitle text-[10px] font-mono block truncate mt-0.5">{r.regex || '(空字串)'}</span>
                                     </div>
                                     {copiedId === r.id
-                                        ? <Check size={14} className="text-emerald-400 shrink-0" />
+                                        ? <Check size={14} className="poe-gold-accent shrink-0" />
                                         : <Copy size={13} className="opacity-45 group-hover:opacity-100 transition-opacity shrink-0" />
                                     }
                                 </button>
                             )}
                             {isEditing && (
-                                <button onClick={() => handleRemove(r.id)} className="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition-colors shrink-0" title="刪除"><Trash2 size={14} /></button>
+                                <button onClick={() => handleRemove(r.id)} className="p-2 poe-icon-danger rounded-[4px] transition-colors shrink-0" title="刪除"><Trash2 size={14} /></button>
                             )}
                         </div>
                     ))}
                     {isEditing && (
-                        <button onClick={handleAdd} className="poe-modal-add-btn w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium rounded-xl border border-dashed transition-colors">
+                        <button onClick={handleAdd} className="poe-modal-add-btn w-full py-2 flex items-center justify-center gap-1.5 text-xs font-medium rounded-[4px] border border-dashed transition-colors">
                             <Plus size={14} /> 新增正規表示式
                         </button>
                     )}
                 </div>
 
                 {/* 底部 */}
-                <div className="poe-modal-footer px-5 py-3 flex items-center justify-between border-t shrink-0 select-none">
-                    <button onClick={() => setIsEditing(!isEditing)} className={cn("poe-modal-secondary-btn flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg transition-colors border", isEditing ? "poe-modal-secondary-btn-active" : "")}>
-                        {isEditing ? <Check size={14} /> : <FileEdit size={14} />} {isEditing ? '完成編輯' : '編輯列表'}
-                    </button>
+                <div className="poe-modal-footer px-5 py-3 flex items-center justify-between gap-2 border-t shrink-0 select-none">
+                    <div className="flex items-center gap-2">
+                        <button onClick={() => setIsEditing(!isEditing)} className={cn("poe-modal-secondary-btn flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-[4px] transition-colors border", isEditing ? "poe-modal-secondary-btn-active" : "")}>
+                            {isEditing ? <Check size={14} /> : <FileEdit size={14} />} {isEditing ? '完成編輯' : '編輯列表'}
+                        </button>
+                        {isEditing && (
+                            <button onClick={handleResetDefaults} className="poe-modal-secondary-btn flex items-center gap-1.5 text-xs px-2.5 py-1.5 rounded-[4px] transition-colors border" title="載入繁體中文開荒預設清單">
+                                <Undo2 size={13} /> 還原預設
+                            </button>
+                        )}
+                    </div>
                     {!isEditing && (
                         <div className="poe-modal-kbd flex items-center gap-1.5 px-2 py-1 rounded text-[10px] font-bold">
                             <kbd>{hotkeyLabel || 'F8'}</kbd> 快捷鍵
@@ -658,6 +717,33 @@ const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset }) => {
     const [text, setText] = useState(guideToMarkdown(guideData));
     const [error, setError] = useState('');
     const guideFileInputRef = useRef(null);
+    const textareaRef = useRef(null);
+
+    const insertTagSnippet = (snippet, selectStartOffset, selectEndOffset) => {
+        const el = textareaRef.current;
+        if (!el) {
+            setText((prev) => `${prev}${snippet}`);
+            return;
+        }
+        const start = el.selectionStart ?? text.length;
+        const end = el.selectionEnd ?? text.length;
+        const selected = text.slice(start, end);
+        const inserted = selected
+            ? snippet.slice(0, selectStartOffset) + selected + snippet.slice(selectEndOffset)
+            : snippet;
+        const next = text.slice(0, start) + inserted + text.slice(end);
+        setText(next);
+        setError('');
+        requestAnimationFrame(() => {
+            el.focus();
+            if (selected) {
+                const caret = start + inserted.length;
+                el.setSelectionRange(caret, caret);
+            } else {
+                el.setSelectionRange(start + selectStartOffset, start + selectEndOffset);
+            }
+        });
+    };
 
     useEffect(() => {
         const onKey = (e) => { if (e.key === 'Escape') onClose(); };
@@ -730,12 +816,12 @@ const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset }) => {
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 16 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 16 }}
                 onClick={(e) => e.stopPropagation()}
-                className="poe-modal w-full h-full max-w-2xl max-h-[90vh] rounded-2xl border flex flex-col overflow-hidden"
+                className="poe-modal w-full h-full max-w-2xl max-h-[90vh] rounded-[6px] border flex flex-col overflow-hidden"
             >
                 {/* 編輯器標題 */}
                 <div className="poe-modal-header px-4 py-3.5 flex items-center justify-between border-b shrink-0">
                     <div className="flex items-center gap-3 min-w-0">
-                        <div className="poe-modal-icon w-8 h-8 rounded-lg flex items-center justify-center shrink-0">
+                        <div className="poe-modal-icon w-8 h-8 rounded-[4px] flex items-center justify-center shrink-0">
                             <FileEdit size={16} />
                         </div>
                         <div className="min-w-0">
@@ -748,19 +834,33 @@ const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset }) => {
                             <p className="poe-modal-subtitle text-[10px] font-medium truncate">支援 .md 匯入/匯出，只會修改目前選取的攻略</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="poe-modal-close p-1.5 rounded-full transition-colors shrink-0" title="關閉 (Esc)"><X size={17} /></button>
+                    <button onClick={onClose} className="poe-modal-close p-1.5 rounded-[4px] transition-colors shrink-0" title="關閉 (Esc)"><X size={17} /></button>
                 </div>
 
-                {/* 格式說明 */}
-                <div className="poe-modal-tips px-4 py-2 text-[11px] shrink-0 border-b flex items-center gap-2">
-                    <span className="font-bold bg-[#8d1420] text-amber-100 px-1.5 py-0.5 rounded-[4px] text-[9px] shrink-0">TIPS</span>
-                    <span className="truncate">支援 Markdown <code className="px-1 rounded font-mono opacity-90">## 章節</code> 與 <code className="px-1 rounded font-mono opacity-90">- 任務</code>，縮排項目會顯示為子任務。</span>
+                {/* 格式說明與快速插入標籤 */}
+                <div className="poe-modal-tips px-4 py-2.5 text-[11px] shrink-0 border-b space-y-1.5">
+                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 leading-relaxed">
+                        <span className="poe-tips-tag font-bold px-1.5 py-0.5 text-[9px] shrink-0">語法</span>
+                        <span>
+                            <code className="px-1 rounded font-mono opacity-90">## 章節</code> ·{' '}
+                            <code className="px-1 rounded font-mono opacity-90">- 任務</code>（開頭縮排＝子任務）·{' '}
+                            <code className="px-1 rounded font-mono opacity-90">[任意文字]</code> 或 <code className="px-1 rounded font-mono opacity-90">【任意文字】</code> 會顯示為標籤
+                        </span>
+                    </div>
+                    <div className="flex flex-wrap items-center gap-1.5">
+                        <span className="text-[10px] opacity-80 shrink-0">點擊插入標籤：</span>
+                        <button type="button" onClick={() => insertTagSnippet('[金:重點]', 3, 5)} className="poe-inline-badge poe-tag-passive cursor-pointer hover:brightness-110" title="插入古銅金標籤（也可直接寫 [文字]）">[金:重點]</button>
+                        <button type="button" onClick={() => insertTagSnippet('[青:精魂]', 3, 5)} className="poe-inline-badge poe-tag-spirit cursor-pointer hover:brightness-110" title="插入寶石青標籤">[青:精魂]</button>
+                        <button type="button" onClick={() => insertTagSnippet('[藍:抗性]', 3, 5)} className="poe-inline-badge poe-tag-resist cursor-pointer hover:brightness-110" title="插入魔法藍標籤">[藍:抗性]</button>
+                        <button type="button" onClick={() => insertTagSnippet('[紅:注意]', 3, 5)} className="poe-inline-badge poe-tag-trial cursor-pointer hover:brightness-110" title="插入瓦爾紅標籤">[紅:注意]</button>
+                    </div>
                 </div>
 
                 {/* 編輯區 */}
                 <div className="flex-1 overflow-hidden relative flex flex-col">
                     <input ref={guideFileInputRef} type="file" accept=".md,.markdown,text/markdown,text/plain" className="hidden" onChange={handleBrowserMarkdown} />
                     <textarea
+                        ref={textareaRef}
                         value={text} onChange={e => { setText(e.target.value); setError(''); }}
                         className="poe-modal-textarea w-full flex-1 px-4 py-3.5 text-[13px] font-mono resize-none outline-none leading-relaxed custom-scrollbar"
                         placeholder="## 第一章：獅眼守望&#10;● 任務內容一&#10;● 任務內容二"
@@ -770,29 +870,29 @@ const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset }) => {
                 </div>
 
                 {/* 錯誤提示 */}
-                {error && <div className="px-4 py-2 text-xs text-red-300 bg-red-950/60 border-t border-red-900/50 font-medium shrink-0">{error}</div>}
+                {error && <div className="poe-modal-error px-4 py-2 text-xs font-medium shrink-0">{error}</div>}
 
                 {/* 底部按鈕 */}
                 <div className="poe-modal-footer px-4 py-3 flex flex-wrap items-center justify-between gap-2 border-t shrink-0">
                     <div className="flex gap-1.5">
                         <button onClick={onReset}
-                            className="poe-modal-secondary-btn flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-xl transition-all active:scale-95 border" title="還原為預設攻略">
+                            className="poe-modal-secondary-btn flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-[4px] transition-all active:scale-95 border" title="還原為預設攻略">
                             <Undo2 size={13} /><span>還原</span>
                         </button>
                         <button onClick={handleImportMarkdown}
-                            className="poe-modal-secondary-btn flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-xl transition-all active:scale-95 border">
+                            className="poe-modal-secondary-btn flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-[4px] transition-all active:scale-95 border">
                             <Upload size={13} /><span>匯入 .md</span>
                         </button>
                         <button onClick={handleExportMarkdown}
-                            className="poe-modal-secondary-btn flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-xl transition-all active:scale-95 border">
+                            className="poe-modal-secondary-btn flex items-center gap-1.5 px-2.5 py-1.5 text-xs rounded-[4px] transition-all active:scale-95 border">
                             <Download size={13} /><span>匯出 .md</span>
                         </button>
                     </div>
                     <div className="flex gap-2">
                         <button onClick={onClose}
-                            className="poe-modal-secondary-btn px-4 py-1.5 text-xs rounded-xl transition-all border">取消</button>
+                            className="poe-modal-secondary-btn px-4 py-1.5 text-xs rounded-[4px] transition-all border">取消</button>
                         <button onClick={handleSave}
-                            className="poe-primary-btn flex items-center gap-1.5 px-5 py-1.5 text-xs font-medium rounded-xl transition-all active:scale-95">
+                            className="poe-primary-btn flex items-center gap-1.5 px-5 py-1.5 text-xs font-medium rounded-[4px] transition-all active:scale-95">
                             <Save size={13} /><span>儲存攻略</span>
                         </button>
                     </div>
@@ -808,7 +908,7 @@ const GuideEditor = ({ guideData, guideMeta, onSave, onClose, onReset }) => {
 // ============================================================
 const HOTKEY_LABELS = {
     toggle: '隱藏/顯示',
-    cheatsheet: '快捷圖片',
+    cheatsheet: '天賦圖',
     regex: '正規表示式',
     timer: '計時器 開始/暫停',
     prevAct: '上一章',
@@ -865,12 +965,12 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose }) => {
         >
             <motion.div initial={{ scale: 0.95, opacity: 0, y: 16 }} animate={{ scale: 1, opacity: 1, y: 0 }} exit={{ scale: 0.95, opacity: 0, y: 16 }}
                 onClick={(e) => e.stopPropagation()}
-                className="poe-modal w-full max-w-xs rounded-2xl border flex flex-col overflow-hidden"
+                className="poe-modal w-full max-w-xs rounded-[6px] border flex flex-col overflow-hidden"
             >
                 {/* 標題 */}
                 <div className="poe-modal-header px-5 py-3.5 flex items-center justify-between border-b shrink-0">
                     <div className="flex items-center gap-3">
-                        <div className="poe-modal-icon w-8 h-8 rounded-lg flex items-center justify-center">
+                        <div className="poe-modal-icon w-8 h-8 rounded-[4px] flex items-center justify-center">
                             <Keyboard size={16} />
                         </div>
                         <div>
@@ -878,18 +978,18 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose }) => {
                             <p className="poe-modal-subtitle text-[10px] font-medium">點擊「錄入」後按下按鍵，Esc 可取消</p>
                         </div>
                     </div>
-                    <button onClick={onClose} className="poe-modal-close p-1.5 rounded-full transition-colors" title="關閉 (Esc)"><X size={17} /></button>
+                    <button onClick={onClose} className="poe-modal-close p-1.5 rounded-[4px] transition-colors" title="關閉 (Esc)"><X size={17} /></button>
                 </div>
 
                 {/* 快捷鍵列表 */}
                 <div className="poe-modal-body px-4 py-3 space-y-2 max-h-[60vh] overflow-y-auto custom-scrollbar">
                     {Object.entries(HOTKEY_LABELS).map(([key, label]) => (
-                        <div key={key} className="poe-modal-list-card flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl border">
+                        <div key={key} className="poe-modal-list-card flex items-center justify-between gap-2 px-3 py-2.5 rounded-[4px] border">
                             <span className="text-xs font-bold truncate">{label}</span>
                             <div className="flex items-center gap-1.5 shrink-0">
-                                <kbd className={cn("text-[11px] px-2 py-1 rounded-lg font-mono font-bold min-w-[44px] text-center",
+                                <kbd className={cn("text-[11px] px-2 py-1 rounded-[4px] font-mono font-bold min-w-[44px] text-center",
                                     recording === key
-                                        ? "bg-red-500/20 text-amber-300 border border-red-500/40 animate-pulse"
+                                        ? "poe-recording-kbd animate-pulse"
                                         : draft[key]
                                             ? "poe-modal-kbd"
                                             : "poe-modal-empty text-[10px] font-sans font-normal px-1.5"
@@ -897,14 +997,14 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose }) => {
                                     {recording === key ? '請按鍵...' : (draft[key] || '未設定')}
                                 </kbd>
                                 <button onClick={() => setRecording(recording === key ? null : key)}
-                                    className={cn("poe-modal-record-btn text-[10px] px-2 py-1 rounded-lg font-medium transition-all active:scale-95",
+                                    className={cn("poe-modal-record-btn text-[10px] px-2 py-1 rounded-[4px] font-medium transition-all active:scale-95",
                                         recording === key ? "poe-modal-record-btn-active" : ""
                                     )}>
                                     {recording === key ? '取消' : '錄入'}
                                 </button>
                                 <button onClick={() => setDraft(prev => ({ ...prev, [key]: '' }))}
                                     disabled={!draft[key]}
-                                    className="p-1.5 rounded-lg transition-colors active:scale-90 opacity-45 hover:opacity-100 hover:bg-red-500/10 text-red-400 disabled:opacity-15 disabled:pointer-events-none" title="清除快捷鍵">
+                                    className="p-1.5 rounded-[4px] transition-colors active:scale-90 opacity-60 hover:opacity-100 poe-icon-danger disabled:opacity-15 disabled:pointer-events-none" title="清除快捷鍵">
                                     <Eraser size={13} />
                                 </button>
                             </div>
@@ -914,8 +1014,8 @@ const HotkeySettingsModal = ({ hotkeys, onSave, onClose }) => {
 
                 {/* 底部 */}
                 <div className="poe-modal-footer px-5 py-3 flex items-center justify-end gap-2.5 border-t shrink-0">
-                    <button onClick={onClose} className="poe-modal-secondary-btn px-4 py-1.5 text-xs rounded-xl transition-all border">取消</button>
-                    <button onClick={() => onSave(draft)} className="poe-primary-btn flex items-center gap-1.5 px-5 py-1.5 text-xs font-medium rounded-xl transition-all active:scale-95">
+                    <button onClick={onClose} className="poe-modal-secondary-btn px-4 py-1.5 text-xs rounded-[4px] transition-all border">取消</button>
+                    <button onClick={() => onSave(draft)} className="poe-primary-btn flex items-center gap-1.5 px-5 py-1.5 text-xs font-medium rounded-[4px] transition-all active:scale-95">
                         <Save size={13} /><span>儲存</span>
                     </button>
                 </div>
@@ -944,7 +1044,7 @@ const App = () => {
     const [checkedByGuide, setCheckedByGuide] = useState(saved?.checkedByGuide ?? { [legacyGuideId]: saved?.checked ?? {} });
     const [elapsedMs, setElapsedMs] = useState(saved?.time ?? 0);
     const [isRunning, setIsRunning] = useState(false);
-    const [opacity, setOpacity] = useState(saved?.alpha ?? 0.9);
+    const [opacity, setOpacity] = useState(saved?.alpha ?? 1);
     const [dark, setDark] = useState(saved?.dark ?? true);
     const initialFontSize = saved?.fontSize ?? 13;
     const [fontSize, setFontSize] = useState(initialFontSize);
@@ -954,12 +1054,11 @@ const App = () => {
         if (saved?.cheatsheet) return [saved.cheatsheet];
         return [];
     });
-    const [actImagesByGuide, setActImagesByGuide] = useState(saved?.actImagesByGuide ?? { [legacyGuideId]: saved?.actImages ?? {} });
-    const [showActMap, setShowActMap] = useState(false);
-    const [regexes, setRegexes] = useState(saved?.regexes ?? [
-        { id: 1, name: '3連色 (紅綠藍)', regex: 'r-g-b|r-b-g|g-r-b|g-b-r|b-r-g|b-g-r' },
-        { id: 2, name: '跑速鞋 (10%以上)', regex: '1[0-9]% increased movement speed' }
-    ]);
+    const [regexes, setRegexes] = useState(() => (
+        saved?.regexes && !isUntouchedLegacyRegexes(saved.regexes)
+            ? saved.regexes
+            : DEFAULT_REGEXES.map(r => ({ ...r }))
+    ));
     const [showRegex, setShowRegex] = useState(false);
     const [showCheatsheet, setShowCheatsheet] = useState(false);
     const [showSettings, setShowSettings] = useState(false);
@@ -973,7 +1072,7 @@ const App = () => {
     const toastTimerRef = useRef(null);
     const chapterMenuRef = useRef(null);
     // 隱藏計時器 & 任務攻略 & 已完成篩選
-    const [showTimer, setShowTimer] = useState(saved?.showTimer ?? true);
+    const [showTimer, setShowTimer] = useState(saved?.showTimer ?? false);
     const [showGuide, setShowGuide] = useState(saved?.showGuide ?? true);
     const [hideCompleted, setHideCompleted] = useState(saved?.hideCompleted ?? false);
     // 快捷鍵
@@ -987,14 +1086,11 @@ const App = () => {
     const activeGuide = guideLibrary[activeGuideId] || BUILT_IN_GUIDES.poe2;
     const guideData = activeGuide.guide || {};
     const checkedTasks = checkedByGuide[activeGuideId] || {};
-    const actImages = actImagesByGuide[activeGuideId] || {};
     const guideOptions = Object.values(guideLibrary);
     const acts = Object.keys(guideData);
     const safeActIdx = actIdx < acts.length ? actIdx : 0;
     const currentAct = acts[safeActIdx];
     const startTimeRef = useRef(Date.now() - elapsedMs);
-    const actImageInputRef = useRef(null);
-    const cheatsheetInputRef = useRef(null);
 
     // --- 初始化載入快捷鍵 ---
     useEffect(() => {
@@ -1015,24 +1111,31 @@ const App = () => {
         return () => cancelAnimationFrame(raf);
     }, [isRunning]);
 
-    // --- 快捷圖片快捷鍵 ---
+    // --- 天賦圖快捷鍵 ---
     useEffect(() => {
         if (!isElectron) return;
         const toggle = async () => {
-            if (cheatsheets.length === 0) {
-                toast('請先至設定選擇快捷圖片');
-                return;
-            }
             const isOpen = await window.electronAPI.isViewerOpen('cheatsheet');
             if (isOpen) {
                 window.electronAPI.closeViewer('cheatsheet');
             } else {
-                window.electronAPI.openViewer({ id: 'cheatsheet', title: '快捷圖片', images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
+                window.electronAPI.openViewer({ id: 'cheatsheet', title: '天賦圖', images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
             }
         };
         window.electronAPI.onToggleCheatsheet(toggle);
         return () => window.electronAPI.offToggleCheatsheet();
     }, [cheatsheets, hotkeys.cheatsheet]);
+
+    // --- 接收獨立圖片視窗的圖片異動（貼上 / 拖曳 / 改名 / 刪除 / 排序） ---
+    useEffect(() => {
+        if (!isElectron || !window.electronAPI.onViewerImagesChanged) return;
+        window.electronAPI.onViewerImagesChanged(({ id, images }) => {
+            if (id === 'cheatsheet') {
+                setCheatsheets(Array.isArray(images) ? images : []);
+            }
+        });
+        return () => window.electronAPI.offViewerImagesChanged?.();
+    }, []);
 
     // --- 同步資料給已開啟的子視窗 ---
     useEffect(() => {
@@ -1042,14 +1145,6 @@ const App = () => {
             });
         }
     }, [cheatsheets, hotkeys.cheatsheet]);
-
-    useEffect(() => {
-        if (isElectron && actImages[currentAct]) {
-            window.electronAPI.isViewerOpen('actMap').then(isOpen => {
-                if (isOpen) window.electronAPI.updateViewerData('actMap', { images: actImages[currentAct], hotkeyLabel: '100%' });
-            });
-        }
-    }, [currentAct, actImages, activeGuideId]);
 
     // --- Regex 快捷鍵 ---
     useEffect(() => {
@@ -1136,8 +1231,6 @@ const App = () => {
             dark,
             fontSize,
             cheatsheets,
-            actImagesByGuide,
-            actImages,
             regexes,
             showTimer,
             showGuide,
@@ -1148,16 +1241,14 @@ const App = () => {
         // 請求清理未使用的圖片檔案
         if (isElectron) {
             const activeUrls = new Set();
-            cheatsheets.forEach(url => activeUrls.add(url));
-            Object.values(actImagesByGuide).forEach(imagesByAct => {
-                Object.values(imagesByAct || {}).forEach(arr => {
-                    arr.forEach(url => activeUrls.add(url));
-                });
+            cheatsheets.forEach(item => {
+                const url = typeof item === 'string' ? item : item?.src;
+                if (url) activeUrls.add(url);
             });
             window.electronAPI.cleanupImages(Array.from(activeUrls));
         }
-    }, [activeGuideId, safeActIdx, actIdxByGuide, checkedByGuide, checkedTasks, elapsedMs, opacity, dark, fontSize, cheatsheets, actImagesByGuide, actImages, regexes, showTimer, showGuide, hideCompleted, guideLibrary]);
-    useEffect(() => { persist(); }, [activeGuideId, safeActIdx, checkedByGuide, opacity, dark, fontSize, cheatsheets, actImagesByGuide, regexes, showTimer, showGuide, hideCompleted, guideLibrary]);
+    }, [activeGuideId, safeActIdx, actIdxByGuide, checkedByGuide, checkedTasks, elapsedMs, opacity, dark, fontSize, cheatsheets, regexes, showTimer, showGuide, hideCompleted, guideLibrary]);
+    useEffect(() => { persist(); }, [activeGuideId, safeActIdx, checkedByGuide, opacity, dark, fontSize, cheatsheets, regexes, showTimer, showGuide, hideCompleted, guideLibrary]);
     useEffect(() => { if (!isRunning) { persist(); return; } const id = setInterval(persist, 5000); return () => clearInterval(id); }, [isRunning, persist]);
 
     // 點擊外部或 Esc 關閉章節選單
@@ -1180,16 +1271,12 @@ const App = () => {
     }, [showChapterMenu]);
 
     const openCheatsheetViewer = async () => {
-        if (cheatsheets.length === 0) {
-            toast('請先至設定選擇快捷圖片');
-            return;
-        }
         if (isElectron) {
             const isOpen = await window.electronAPI.isViewerOpen('cheatsheet');
             if (isOpen) {
                 window.electronAPI.closeViewer('cheatsheet');
             } else {
-                window.electronAPI.openViewer({ id: 'cheatsheet', title: '快捷圖片', images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
+                window.electronAPI.openViewer({ id: 'cheatsheet', title: '天賦圖', images: cheatsheets, hotkeyLabel: hotkeys.cheatsheet });
             }
         } else {
             setShowCheatsheet(v => !v);
@@ -1208,33 +1295,6 @@ const App = () => {
             return { ...prev, [activeGuideId]: next };
         });
     };
-    const setActiveActImages = (updater) => {
-        setActImagesByGuide(prev => {
-            const current = prev[activeGuideId] || {};
-            const next = typeof updater === 'function' ? updater(current) : updater;
-            return { ...prev, [activeGuideId]: next };
-        });
-    };
-    const toBrowserImageUrls = (files) => Array.from(files || []).map(file => URL.createObjectURL(file));
-    const handleBrowserActImages = (event) => {
-        const urls = toBrowserImageUrls(event.target.files);
-        if (urls.length > 0) {
-            setActiveActImages(prev => {
-                const existing = prev[currentAct] || [];
-                return { ...prev, [currentAct]: [...existing, ...urls] };
-            });
-            toast(`已為 ${currentAct} 新增圖片`);
-        }
-        event.target.value = '';
-    };
-    const handleBrowserCheatsheets = (event) => {
-        const urls = toBrowserImageUrls(event.target.files);
-        if (urls.length > 0) {
-            setCheatsheets(prev => [...prev, ...urls]);
-            toast(`已新增 ${urls.length} 張圖片`);
-        }
-        event.target.value = '';
-    };
     const toggleTask = (task) => { const k = `${currentAct}_${task}`; setActiveCheckedTasks(p => ({ ...p, [k]: !p[k] })); };
 
     const switchGuide = (guideId) => {
@@ -1242,11 +1302,6 @@ const App = () => {
         setActIdxByGuide(prev => ({ ...prev, [activeGuideId]: safeActIdx }));
         setActiveGuideId(guideId);
         setActIdx(actIdxByGuide[guideId] ?? 0);
-        if (isElectron) {
-            window.electronAPI.isViewerOpen('actMap').then(isOpen => {
-                if (isOpen) window.electronAPI.closeViewer('actMap');
-            });
-        }
         toast(`已切換到 ${guideLibrary[guideId].name}`);
     };
 
@@ -1260,7 +1315,7 @@ const App = () => {
         setActiveCheckedTasks({}); setElapsedMs(0); setIsRunning(false); setActIdx(0);
         setActIdxByGuide(prev => ({ ...prev, [activeGuideId]: 0 }));
         startTimeRef.current = Date.now();
-        saveConfig({ activeGuideId, last_act: 0, actIdxByGuide: { ...actIdxByGuide, [activeGuideId]: 0 }, checkedByGuide: { ...checkedByGuide, [activeGuideId]: {} }, checked: {}, time: 0, alpha: opacity, dark, fontSize, cheatsheets, actImagesByGuide, actImages, regexes, showTimer, showGuide, hideCompleted });
+        saveConfig({ activeGuideId, last_act: 0, actIdxByGuide: { ...actIdxByGuide, [activeGuideId]: 0 }, checkedByGuide: { ...checkedByGuide, [activeGuideId]: {} }, checked: {}, time: 0, alpha: opacity, dark, fontSize, cheatsheets, regexes, showTimer, showGuide, hideCompleted });
         toast('進度與計時已重置');
     };
 
@@ -1319,13 +1374,13 @@ const App = () => {
     const border = 'poe-border';
 
     return (
-        <div className={cn("poe-shell flex flex-col h-full font-sans overflow-hidden rounded-[14px] relative", bg, textPrimary, dark ? 'poe-mode-dark' : 'poe-mode-light')}>
+        <div className={cn("poe-shell flex flex-col h-full font-sans overflow-hidden rounded-[6px] relative", bg, textPrimary, dark ? 'poe-mode-dark' : 'poe-mode-light')}>
 
             {/* ===== 標題列 ===== */}
             <header className={cn("poe-titlebar px-2.5 py-2 flex items-center justify-between gap-2 z-20 select-none shrink-0 border-b", cardBg, border)}
                 style={{ WebkitAppRegion: 'drag' }}>
                 <div className="flex items-center gap-2 min-w-0">
-                    <div className="poe-sigil w-6 h-6 rounded-lg flex items-center justify-center text-white shrink-0">
+                    <div className="poe-sigil w-6 h-6 rounded-[4px] flex items-center justify-center text-white shrink-0">
                         <Sword size={12} strokeWidth={2.5} />
                     </div>
                     <div className="min-w-0">
@@ -1353,31 +1408,31 @@ const App = () => {
                 <div className="flex items-center gap-0.5 shrink-0" style={{ WebkitAppRegion: 'no-drag' }}>
                     <button
                         onClick={() => { setShowRegex(true); setShowSettings(false); }}
-                        className={cn("poe-icon-btn p-1.5 rounded-lg transition-all active:scale-90", showRegex ? "poe-icon-btn-active" : textSecondary)}
+                        className={cn("poe-icon-btn p-1.5 rounded-[4px] transition-all active:scale-90", showRegex ? "poe-icon-btn-active" : textSecondary)}
                         title={`正規表示式 (${hotkeys.regex || 'F8'})`}
                     >
                         <Search size={13} />
                     </button>
                     <button
                         onClick={openCheatsheetViewer}
-                        className={cn("poe-icon-btn relative p-1.5 rounded-lg transition-all active:scale-90", cheatsheets.length > 0 ? textPrimary : textSecondary)}
-                        title={`快捷圖片 (${hotkeys.cheatsheet || 'F9'})${cheatsheets.length > 0 ? ` · ${cheatsheets.length} 張` : ''}`}
+                        className={cn("poe-icon-btn relative p-1.5 rounded-[4px] transition-all active:scale-90", cheatsheets.length > 0 ? textPrimary : textSecondary)}
+                        title={`天賦圖 (${hotkeys.cheatsheet || 'F9'})${cheatsheets.length > 0 ? ` · ${cheatsheets.length} 張` : ''}`}
                     >
                         <ImageIcon size={13} />
                         {cheatsheets.length > 0 && (
-                            <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-amber-400" />
+                            <span className="absolute top-1 right-1 w-1.5 h-1.5 rotate-45 poe-dot-active" />
                         )}
                     </button>
                     <button
                         onClick={() => setShowSettings(s => !s)}
-                        className={cn("poe-icon-btn p-1.5 rounded-lg transition-all active:scale-90", showSettings ? "poe-icon-btn-active" : textSecondary)}
+                        className={cn("poe-icon-btn p-1.5 rounded-[4px] transition-all active:scale-90", showSettings ? "poe-icon-btn-active" : textSecondary)}
                         title="設定"
                     >
                         <Settings size={14} />
                     </button>
                     {isElectron && (<>
-                        <button onClick={() => window.electronAPI.minimizeWindow()} className={cn("poe-icon-btn p-1.5 rounded-lg transition-colors", textSecondary)} title="最小化"><Minus size={14} /></button>
-                        <button onClick={() => window.electronAPI.closeWindow()} className={cn("poe-icon-btn p-1.5 hover:bg-red-500/15 hover:text-red-400 rounded-lg transition-colors", textSecondary)} title="關閉"><X size={14} /></button>
+                        <button onClick={() => window.electronAPI.minimizeWindow()} className={cn("poe-icon-btn p-1.5 rounded-[4px] transition-colors", textSecondary)} title="最小化"><Minus size={14} /></button>
+                        <button onClick={() => window.electronAPI.closeWindow()} className={cn("poe-icon-btn p-1.5 poe-icon-danger rounded-[4px] transition-colors", textSecondary)} title="關閉"><X size={14} /></button>
                     </>)}
                 </div>
             </header>
@@ -1419,14 +1474,14 @@ const App = () => {
                                         const isActive = guide.id === activeGuideId;
                                         return (
                                             <button key={guide.id} onClick={() => switchGuide(guide.id)}
-                                                className={cn("poe-guide-card text-left rounded-xl px-2.5 py-2 border transition-all active:scale-95 flex flex-col justify-between", isActive ? "poe-guide-card-active" : "poe-guide-card-idle")}
+                                                className={cn("poe-guide-card text-left rounded-[4px] px-2.5 py-2 border transition-all active:scale-95 flex flex-col justify-between", isActive ? "poe-guide-card-active" : "poe-guide-card-idle")}
                                                 title={guide.description}>
                                                 <div className="flex items-center justify-between gap-1.5">
                                                     <span className="text-[11px] font-bold truncate">{guide.name}</span>
                                                     <span className="text-[9px] font-mono tabular-nums opacity-75 shrink-0">{guideDone}/{guideTotal}</span>
                                                 </div>
                                                 <div className={cn("mt-0.5 text-[9px] leading-snug truncate", textSecondary)}>{guide.description}</div>
-                                                <div className="poe-progress-track h-[2px] w-full rounded-full overflow-hidden mt-1.5">
+                                                <div className="poe-progress-track h-[2px] w-full rounded-[4px] overflow-hidden mt-1.5">
                                                     <div className="poe-progress-fill h-full" style={{ width: `${guidePct}%` }} />
                                                 </div>
                                             </button>
@@ -1442,19 +1497,19 @@ const App = () => {
                                 <div>
                                     <div className="flex items-center justify-between mb-1">
                                         <div className="flex items-center gap-1.5"><Eye size={12} className={textSecondary} /><span className="text-[11px] font-medium">視窗透明度</span></div>
-                                        <span className={cn("poe-chip text-[10px] font-mono tabular-nums px-1.5 py-0.5 rounded-md", textSecondary)}>{Math.round(opacity * 100)}%</span>
+                                        <span className={cn("poe-chip text-[10px] font-mono tabular-nums px-1.5 py-0.5 rounded-[2px]", textSecondary)}>{Math.round(opacity * 100)}%</span>
                                     </div>
-                                    <input type="range" min="0.1" max="1" step="0.05" value={opacity} onChange={e => handleOpacity(parseFloat(e.target.value))} className="poe-range w-full h-1 rounded-lg appearance-none cursor-pointer" />
+                                    <input type="range" min="0.1" max="1" step="0.05" value={opacity} onChange={e => handleOpacity(parseFloat(e.target.value))} className="poe-range w-full h-1 rounded-[4px] appearance-none cursor-pointer" />
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <button onClick={() => setDark(d => !d)}
-                                        className="poe-action-secondary flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 justify-center min-w-0">
+                                        className="poe-action-secondary flex items-center gap-1.5 px-2.5 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95 justify-center min-w-0">
                                         {dark ? <Sun size={12} /> : <Moon size={12} />}
                                         <span>{dark ? '淺色羊皮紙' : '深色暗黑'}</span>
                                     </button>
                                     <button onClick={() => setShowFontSizeMenu(v => !v)}
-                                        className="poe-font-size-trigger poe-action-secondary w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95"
+                                        className="poe-font-size-trigger poe-action-secondary w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95"
                                         title="選擇文字大小"
                                         aria-expanded={showFontSizeMenu}
                                         aria-haspopup="menu">
@@ -1465,11 +1520,11 @@ const App = () => {
                                 </div>
 
                                 {showFontSizeMenu && (
-                                    <div className="poe-font-size-menu grid grid-cols-4 gap-1 rounded-lg border p-1" role="menu" aria-label="文字大小選單">
+                                    <div className="poe-font-size-menu grid grid-cols-4 gap-1 rounded-[4px] border p-1" role="menu" aria-label="文字大小選單">
                                         {FONT_SIZE_OPTIONS.map(size => (
                                             <button key={size}
                                                 onClick={() => { handleFontSize(size); setShowFontSizeMenu(false); }}
-                                                className={cn("flex items-center justify-center rounded-md px-2 py-1.5 text-[10px] font-medium transition-all active:scale-95",
+                                                className={cn("flex items-center justify-center rounded-[2px] px-2 py-1.5 text-[10px] font-medium transition-all active:scale-95",
                                                     size === fontSize ? "poe-font-size-option-active" : "poe-font-size-option"
                                                 )}
                                                 role="menuitem">
@@ -1481,13 +1536,13 @@ const App = () => {
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <button onClick={() => setShowTimer(v => !v)}
-                                        className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                        className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95 min-w-0",
                                             showTimer ? "poe-action-success" : "poe-action-muted opacity-75"
                                         )}>
                                         <Timer size={12} /><span>{showTimer ? '計時器：顯示' : '計時器：隱藏'}</span>
                                     </button>
                                     <button onClick={() => setShowGuide(v => !v)}
-                                        className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0",
+                                        className={cn("flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95 min-w-0",
                                             showGuide ? "poe-action-success" : "poe-action-muted opacity-75"
                                         )}>
                                         <ListChecks size={12} /><span>{showGuide ? '攻略：顯示' : '攻略：隱藏'}</span>
@@ -1501,79 +1556,38 @@ const App = () => {
 
                                 <div className="grid grid-cols-2 gap-2">
                                     <button onClick={() => { setShowEditor(true); setShowSettings(false); }}
-                                        className="poe-action-secondary flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0">
+                                        className="poe-action-secondary flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95 min-w-0">
                                         <FileEdit size={12} /><span>編輯劇情攻略</span>
                                     </button>
+                                    <button onClick={() => { setShowRegex(true); setShowSettings(false); }}
+                                        className="poe-action-secondary flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95 min-w-0">
+                                        <Search size={12} /><span>正規表示式</span>
+                                    </button>
+                                    <div className="flex items-center gap-1 min-w-0">
+                                        <button
+                                            onClick={() => { setShowSettings(false); openCheatsheetViewer(); }}
+                                            className="poe-action-secondary flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95 min-w-0">
+                                            <ImageIcon size={12} className="shrink-0" /><span className="truncate">天賦圖</span>
+                                            <span className="font-mono text-[10px] opacity-80">({cheatsheets.length})</span>
+                                        </button>
+                                        {cheatsheets.length > 0 && (
+                                            <button onClick={() => { setCheatsheets([]); toast('已清除所有天賦圖'); }}
+                                                className="p-1.5 poe-icon-danger rounded-[4px] transition-colors shrink-0" title="清除全部天賦圖">
+                                                <X size={12} />
+                                            </button>
+                                        )}
+                                    </div>
                                     <button onClick={() => { setShowHotkeySettings(true); setShowSettings(false); }}
-                                        className="poe-action-secondary flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0"
+                                        className="poe-action-secondary flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-[4px] text-[11px] font-medium transition-all active:scale-95 min-w-0"
                                         title={isElectron ? "設定全域快捷鍵" : "瀏覽器預覽可調整顯示值，實際全域快捷鍵需使用 Electron 版"}>
                                         <Keyboard size={12} /><span>自訂快捷鍵</span>
                                     </button>
                                 </div>
 
-                                <div className="grid grid-cols-2 gap-2">
-                                    {/* 本章路線圖 */}
-                                    <div className="flex items-center gap-1 min-w-0">
-                                        <button onClick={async () => {
-                                            if (isElectron) {
-                                                const paths = await window.electronAPI.selectImages();
-                                                if (paths && paths.length > 0) {
-                                                    setActiveActImages(prev => {
-                                                        const existing = prev[currentAct] || [];
-                                                        return { ...prev, [currentAct]: [...existing, ...paths] };
-                                                    });
-                                                    toast(`已為 ${currentAct} 新增圖片`);
-                                                }
-                                            } else {
-                                                actImageInputRef.current?.click();
-                                            }
-                                        }}
-                                            className="poe-action-secondary flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0"
-                                            title={`為「${currentAct}」設定專屬路線圖圖片`}>
-                                            <ImagePlus size={12} className="shrink-0" /><span className="truncate">路線圖</span>
-                                            <span className="font-mono text-[10px] opacity-80">({actImages[currentAct]?.length || 0})</span>
-                                        </button>
-                                        {actImages[currentAct]?.length > 0 && (
-                                            <button onClick={() => {
-                                                setActiveActImages(prev => {
-                                                    const next = { ...prev };
-                                                    delete next[currentAct];
-                                                    return next;
-                                                });
-                                                toast(`已清除 ${currentAct} 的路線圖`);
-                                            }}
-                                                className="p-1.5 text-red-400 hover:bg-red-400/15 rounded-lg transition-colors shrink-0" title="清除本章路線圖">
-                                                <X size={12} />
-                                            </button>
-                                        )}
-                                    </div>
-                                    {/* 快捷圖片 */}
-                                    <div className="flex items-center gap-1 min-w-0">
-                                        <button onClick={async () => {
-                                            if (isElectron) {
-                                                const paths = await window.electronAPI.selectImages();
-                                                if (paths && paths.length > 0) { setCheatsheets(prev => [...prev, ...paths]); toast(`已新增 ${paths.length} 張圖片`); }
-                                            } else {
-                                                cheatsheetInputRef.current?.click();
-                                            }
-                                        }}
-                                            className="poe-action-secondary flex-1 flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg text-[11px] font-medium transition-all active:scale-95 min-w-0">
-                                            <ImageIcon size={12} className="shrink-0" /><span className="truncate">快捷圖</span>
-                                            <span className="font-mono text-[10px] opacity-80">({cheatsheets.length})</span>
-                                        </button>
-                                        {cheatsheets.length > 0 && (
-                                            <button onClick={() => { setCheatsheets([]); toast('已清除所有圖片'); }}
-                                                className="p-1.5 text-red-400 hover:bg-red-400/15 rounded-lg transition-colors shrink-0" title="清除全部快捷圖片">
-                                                <X size={12} />
-                                            </button>
-                                        )}
-                                    </div>
-                                </div>
-
                                 {/* 系統操作列 */}
                                 <div className="grid grid-cols-3 gap-1.5">
                                     <button onClick={resetAll}
-                                        className="poe-danger-subtle flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95"
+                                        className="poe-danger-subtle flex items-center justify-center gap-1 px-2 py-1.5 rounded-[4px] text-[10px] font-medium transition-all active:scale-95"
                                         title="重置目前攻略的任務勾選與計時">
                                         <RotateCcw size={11} /><span>重置進度</span>
                                     </button>
@@ -1587,7 +1601,7 @@ const App = () => {
                                         setUpdateStatus('checking');
                                         setTimeout(() => setUpdateStatus(s => (s === 'checking' ? null : s)), 10000);
                                     }}
-                                        className="poe-action-secondary flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95"
+                                        className="poe-action-secondary flex items-center justify-center gap-1 px-2 py-1.5 rounded-[4px] text-[10px] font-medium transition-all active:scale-95"
                                         title="立刻檢查有無新版本">
                                         <RefreshCw size={11} className={updateStatus === 'checking' ? 'animate-spin' : ''} /><span>檢查更新</span>
                                     </button>
@@ -1598,14 +1612,14 @@ const App = () => {
                                         }
                                         window.electronAPI.openImagesFolder();
                                     }}
-                                        className="poe-action-secondary flex items-center justify-center gap-1 px-2 py-1.5 rounded-lg text-[10px] font-medium transition-all active:scale-95"
+                                        className="poe-action-secondary flex items-center justify-center gap-1 px-2 py-1.5 rounded-[4px] text-[10px] font-medium transition-all active:scale-95"
                                         title="開啟圖片儲存目錄尋找/刪除圖片">
                                         <FolderOpen size={11} /><span>圖片目錄</span>
                                     </button>
                                 </div>
 
-                                <div className={cn("poe-hotkey-strip text-[9px] px-2.5 py-1.5 rounded-lg leading-relaxed text-center", textSecondary)}>
-                                    {`${hotkeys.cheatsheet || 'F9'} 快捷圖片 · ${hotkeys.regex || 'F8'} 正規表示式 · ${hotkeys.toggle || 'F10'} 隱藏/顯示`}
+                                <div className={cn("poe-hotkey-strip text-[9px] px-2.5 py-1.5 rounded-[4px] leading-relaxed text-center", textSecondary)}>
+                                    {`${hotkeys.cheatsheet || 'F9'} 天賦圖 · ${hotkeys.regex || 'F8'} 正規表示式 · ${hotkeys.toggle || 'F10'} 隱藏/顯示`}
                                 </div>
                             </div>
                         </div>
@@ -1616,19 +1630,19 @@ const App = () => {
             {/* ===== 計時器 ===== */}
             {showTimer && (
                 <div className={cn("poe-timerbar px-3 py-1.5 flex items-center justify-center gap-2.5 shrink-0", cardBg)}>
-                    <div className="poe-clock text-xl font-mono font-bold px-3.5 py-1 rounded-xl tracking-wider select-none flex items-center gap-2">
-                        <span className={cn("w-1.5 h-1.5 rounded-full transition-colors", isRunning ? "bg-emerald-400 animate-pulse" : "bg-amber-500/35")} />
+                    <div className="poe-clock text-xl font-mono font-bold px-3.5 py-1 rounded-[4px] tracking-wider select-none flex items-center gap-2">
+                        <span className={cn("w-1.5 h-1.5 rotate-45 transition-colors", isRunning ? "poe-dot-active animate-pulse" : "poe-dot-idle")} />
                         <span>{fmt(elapsedMs)}</span>
                     </div>
                     <button onClick={() => setIsRunning(!isRunning)}
-                        className={cn("flex items-center gap-1.5 px-3.5 py-1.5 rounded-full font-medium text-xs transition-all active:scale-95",
+                        className={cn("flex items-center gap-1.5 px-3.5 py-1.5 rounded-[4px] font-medium text-xs transition-all active:scale-95",
                             isRunning ? "poe-danger-btn" : "poe-primary-btn"
                         )}>
                         {isRunning ? <Pause size={13} /> : <Play size={13} />}
                         <span>{isRunning ? '暫停' : '計時'}</span>
                     </button>
                     <button onClick={() => { setElapsedMs(0); setIsRunning(false); startTimeRef.current = Date.now(); toast('計時器已歸零'); }}
-                        className={cn("poe-icon-btn p-1.5 rounded-full transition-all active:scale-90", textSecondary)} title="重置計時">
+                        className={cn("poe-icon-btn p-1.5 rounded-[4px] transition-all active:scale-90", textSecondary)} title="重置計時">
                         <RotateCcw size={13} />
                     </button>
                 </div>
@@ -1637,17 +1651,18 @@ const App = () => {
             {/* ===== 章節導航 + 任務列表 ===== */}
             {showGuide && (<>
                 <div ref={chapterMenuRef} className={cn("poe-actbar px-2 py-1.5 flex items-center gap-1 border-b shrink-0 relative z-10", cardBg, border)}>
-                    <button onClick={() => { prevAct(); setShowChapterMenu(false); }} className="poe-icon-btn p-1 rounded-lg transition-colors active:scale-90 shrink-0" title="上一章">
+                    <button onClick={() => { prevAct(); setShowChapterMenu(false); }} className="poe-icon-btn p-1 rounded-[4px] transition-colors active:scale-90 shrink-0" title="上一章">
                         <ChevronLeft size={17} className={textSecondary} />
                     </button>
 
                     <div className="flex-1 flex items-center justify-center gap-1.5 min-w-0">
                         <button
                             onClick={() => setShowChapterMenu(v => !v)}
-                            className="poe-act-pill text-xs font-bold px-2.5 py-1 rounded-lg flex items-center gap-1 min-w-0 max-w-full transition-all active:scale-95"
+                            className="poe-act-pill text-xs font-bold px-2.5 py-1 rounded-[4px] flex items-center gap-1 min-w-0 max-w-full transition-all active:scale-95"
                             title="點擊快速切換章節"
                             aria-expanded={showChapterMenu}
                         >
+                            <span className="text-[8px] opacity-70 shrink-0">◆</span>
                             <span className="truncate">{currentAct}</span>
                             <ChevronDown size={12} className={cn("shrink-0 transition-transform", showChapterMenu && "rotate-180")} />
                         </button>
@@ -1658,42 +1673,8 @@ const App = () => {
 
                     <div className="flex items-center gap-0.5 shrink-0">
                         <button
-                            onClick={async () => {
-                                if (actImages[currentAct] && actImages[currentAct].length > 0) {
-                                    if (isElectron) {
-                                        const isOpen = await window.electronAPI.isViewerOpen('actMap');
-                                        if (isOpen) {
-                                            window.electronAPI.closeViewer('actMap');
-                                        } else {
-                                            window.electronAPI.openViewer({ id: 'actMap', title: `路線圖 - ${currentAct}`, images: actImages[currentAct], hotkeyLabel: '100%' });
-                                        }
-                                    } else {
-                                        setShowActMap(true);
-                                    }
-                                } else if (isElectron) {
-                                    window.electronAPI.selectImages().then(paths => {
-                                        if (paths && paths.length > 0) {
-                                            setActiveActImages(prev => {
-                                                const existing = prev[currentAct] || [];
-                                                return { ...prev, [currentAct]: [...existing, ...paths] };
-                                            });
-                                            toast(`已為 ${currentAct} 新增路線圖`);
-                                        }
-                                    });
-                                } else {
-                                    actImageInputRef.current?.click();
-                                }
-                            }}
-                            className={cn("poe-icon-btn p-1.5 rounded-lg transition-colors active:scale-90",
-                                actImages[currentAct]?.length > 0 ? "poe-icon-btn-active" : textSecondary
-                            )}
-                            title={actImages[currentAct]?.length > 0 ? `查看本章路線圖 (${actImages[currentAct].length})` : "新增本章路線圖"}
-                        >
-                            <ImagePlus size={13} />
-                        </button>
-                        <button
                             onClick={() => setHideCompleted(v => !v)}
-                            className={cn("poe-icon-btn p-1.5 rounded-lg transition-colors active:scale-90",
+                            className={cn("poe-icon-btn p-1.5 rounded-[4px] transition-colors active:scale-90",
                                 hideCompleted ? "poe-icon-btn-active" : textSecondary
                             )}
                             title={hideCompleted ? "顯示已完成任務" : "隱藏已完成任務"}
@@ -1701,7 +1682,7 @@ const App = () => {
                         >
                             {hideCompleted ? <EyeOff size={13} /> : <Eye size={13} />}
                         </button>
-                        <button onClick={() => { nextAct(); setShowChapterMenu(false); }} className="poe-icon-btn p-1 rounded-lg transition-colors active:scale-90" title="下一章">
+                        <button onClick={() => { nextAct(); setShowChapterMenu(false); }} className="poe-icon-btn p-1 rounded-[4px] transition-colors active:scale-90" title="下一章">
                             <ChevronRight size={17} className={textSecondary} />
                         </button>
                     </div>
@@ -1714,7 +1695,7 @@ const App = () => {
                                 animate={{ opacity: 1, y: 0, scale: 1 }}
                                 exit={{ opacity: 0, y: -6, scale: 0.98 }}
                                 transition={{ duration: 0.14 }}
-                                className="poe-chapter-menu absolute left-2 right-2 top-full mt-1 rounded-xl p-1.5 max-h-[55vh] overflow-y-auto custom-scrollbar z-30 space-y-0.5"
+                                className="poe-chapter-menu absolute left-2 right-2 top-full mt-1 rounded-[4px] p-1.5 max-h-[55vh] overflow-y-auto custom-scrollbar z-30 space-y-0.5"
                             >
                                 {acts.map((actName, idx) => {
                                     const tasks = guideData[actName] || [];
@@ -1726,13 +1707,13 @@ const App = () => {
                                             key={actName}
                                             onClick={() => { setActIdx(idx); setShowChapterMenu(false); }}
                                             className={cn(
-                                                "poe-chapter-item w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-lg text-left text-xs border border-transparent transition-colors",
+                                                "poe-chapter-item w-full flex items-center justify-between gap-2 px-2.5 py-1.5 rounded-[4px] text-left text-xs border border-transparent transition-colors",
                                                 isCurrent && "poe-chapter-item-active font-bold"
                                             )}
                                         >
                                             <div className="flex items-center gap-2 min-w-0">
-                                                <span className={cn("w-4 h-4 rounded-full flex items-center justify-center text-[9px] font-mono shrink-0",
-                                                    allDone ? "bg-emerald-500/20 text-emerald-400" : "opacity-55"
+                                                <span className={cn("w-4 h-4 rounded-[2px] flex items-center justify-center text-[9px] font-mono shrink-0",
+                                                    allDone ? "poe-chapter-done-badge" : "opacity-55"
                                                 )}>
                                                     {allDone ? <Check size={10} strokeWidth={3} /> : idx + 1}
                                                 </span>
@@ -1755,7 +1736,7 @@ const App = () => {
                 {/* 任務列表 */}
                 <main className="poe-tasklist flex-1 overflow-y-auto px-2.5 py-2 custom-scrollbar">
                     <AnimatePresence mode="wait">
-                        <motion.div key={currentAct} initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -14 }} transition={{ duration: 0.14 }} className="space-y-1.5 pb-4">
+                        <motion.div key={currentAct} initial={{ opacity: 0, x: 14 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -14 }} transition={{ duration: 0.14 }} className="space-y-1 pb-4">
                             {currentTasks.map((task, index) => {
                                 const isChecked = !!checkedTasks[`${currentAct}_${task}`];
                                 if (hideCompleted && isChecked) return null;
@@ -1773,7 +1754,7 @@ const App = () => {
                                         whileTap={{ scale: 0.985 }}
                                         onClick={() => toggleTask(task)}
                                         className={cn(
-                                            "poe-task flex items-start gap-2.5 px-2.5 py-2 rounded-xl border cursor-pointer group transition-all",
+                                            "poe-task flex items-start gap-2.5 px-2.5 py-1.5 rounded-[4px] border cursor-pointer group transition-all",
                                             isSubTask && "ml-5 poe-task-sub",
                                             isChecked
                                                 ? "poe-task-done"
@@ -1785,7 +1766,7 @@ const App = () => {
                                         )}
                                     >
                                         <div className={cn(
-                                            "poe-checkbox mt-[3px] w-4 h-4 rounded-[5px] border-[1.5px] flex items-center justify-center transition-all shrink-0",
+                                            "poe-checkbox mt-[3px] w-4 h-4 rounded-[2px] border-[1.5px] flex items-center justify-center transition-all shrink-0",
                                             isChecked ? "poe-checkbox-done" : "poe-checkbox-open"
                                         )}>
                                             {isChecked && (
@@ -1806,7 +1787,7 @@ const App = () => {
                                             </span>
                                         </div>
                                         {isNext && !isChecked && (
-                                            <span className="poe-next-pill px-1.5 py-0.5 rounded-md font-bold shrink-0 mt-0.5 select-none">
+                                            <span className="poe-next-pill px-1.5 py-0.5 rounded-[2px] font-bold shrink-0 mt-0.5 select-none">
                                                 下一步
                                             </span>
                                         )}
@@ -1819,10 +1800,10 @@ const App = () => {
                                 <motion.div
                                     initial={{ opacity: 0, y: 8 }}
                                     animate={{ opacity: 1, y: 0 }}
-                                    className="poe-complete-card rounded-xl p-3 mt-2 flex items-center justify-between gap-2"
+                                    className="poe-complete-card rounded-[4px] p-3 mt-2 flex items-center justify-between gap-2"
                                 >
                                     <div className="flex items-center gap-2 min-w-0">
-                                        <Sparkles size={15} className="text-amber-400 shrink-0" />
+                                        <Sparkles size={15} className="poe-gold-accent shrink-0" />
                                         <div className="min-w-0">
                                             <p className="text-xs font-bold truncate">
                                                 {hasNextAct ? '本章任務已全部完成！' : '恭喜！全部章節已完成'}
@@ -1835,7 +1816,7 @@ const App = () => {
                                     {hasNextAct && (
                                         <button
                                             onClick={nextAct}
-                                            className="poe-primary-btn flex items-center gap-1 px-3 py-1.5 rounded-lg text-[11px] font-bold shrink-0"
+                                            className="poe-primary-btn flex items-center gap-1 px-3 py-1.5 rounded-[4px] text-[11px] font-bold shrink-0"
                                         >
                                             <span>下一章</span>
                                             <ArrowRight size={12} />
@@ -1863,17 +1844,16 @@ const App = () => {
                 )}
             </AnimatePresence>
 
-            {/* ===== 快捷圖片視窗 ===== */}
+            {/* ===== 天賦圖視窗 ===== */}
             <AnimatePresence>
                 {!isElectron && showCheatsheet && (
-                    <CheatsheetViewer images={cheatsheets} onClose={() => setShowCheatsheet(false)} hotkeyLabel={hotkeys.cheatsheet} />
-                )}
-            </AnimatePresence>
-
-            {/* ===== 路線圖視窗 ===== */}
-            <AnimatePresence>
-                {!isElectron && showActMap && (
-                    <CheatsheetViewer images={actImages[currentAct] || []} onClose={() => setShowActMap(false)} hotkeyLabel="100%" />
+                    <CheatsheetViewer
+                        viewerId="cheatsheet"
+                        images={cheatsheets}
+                        onImagesChange={setCheatsheets}
+                        onClose={() => setShowCheatsheet(false)}
+                        hotkeyLabel={hotkeys.cheatsheet}
+                    />
                 )}
             </AnimatePresence>
 
@@ -1912,9 +1892,6 @@ const App = () => {
                     />
                 )}
             </AnimatePresence>
-
-            <input ref={actImageInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBrowserActImages} />
-            <input ref={cheatsheetInputRef} type="file" accept="image/*" multiple className="hidden" onChange={handleBrowserCheatsheets} />
 
             <Toast message={toastMsg} visible={toastVisible} />
         </div>

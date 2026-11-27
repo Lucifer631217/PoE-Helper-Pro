@@ -8,7 +8,7 @@ autoUpdater.autoDownload = true;
 
 let mainWindow = null;
 let isVisible = true;
-let savedOpacity = 0.9;
+let savedOpacity = 1;
 
 // 判斷是否為開發環境
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
@@ -56,6 +56,24 @@ function copyImageToUserData(sourcePath) {
     }
 }
 
+function saveDataUrlToUserData(dataUrl) {
+    try {
+        const match = String(dataUrl || '').match(/^data:image\/([a-zA-Z0-9+.-]+);base64,(.+)$/);
+        if (!match) return null;
+        let ext = match[1].toLowerCase();
+        if (ext === 'jpeg') ext = 'jpg';
+        else if (ext === 'svg+xml') ext = 'svg';
+        else if (!/^[a-z0-9]+$/.test(ext)) ext = 'png';
+        const filename = `${Date.now()}_${Math.random().toString(36).slice(2, 9)}.${ext}`;
+        const targetPath = path.join(USER_IMAGES_DIR, filename);
+        fs.writeFileSync(targetPath, Buffer.from(match[2], 'base64'));
+        return `file:///${targetPath.replace(/\\/g, '/')}`;
+    } catch (e) {
+        console.error('儲存剪貼簿圖片失敗:', e);
+        return null;
+    }
+}
+
 // ============================================================
 // 獨立視窗狀態與設定
 // ============================================================
@@ -74,9 +92,23 @@ function getViewerBounds(id) {
     return data.viewerBounds?.[id] || { width: 800, height: 600, center: true };
 }
 
+function getViewerOpacity(id) {
+    const data = loadElectronConfig();
+    const val = data.viewerOpacity?.[id];
+    return typeof val === 'number' && val >= 0.2 && val <= 1.0 ? val : 1;
+}
+
+function saveViewerOpacity(id, value) {
+    const clamped = Math.min(1.0, Math.max(0.2, Number(value) || 1));
+    const data = loadElectronConfig();
+    if (!data.viewerOpacity) data.viewerOpacity = {};
+    data.viewerOpacity[id] = clamped;
+    saveElectronConfig({ viewerOpacity: data.viewerOpacity });
+}
+
 // 載入設定
 const config = loadElectronConfig();
-savedOpacity = config.opacity ?? 0.9;
+savedOpacity = config.opacity ?? 1;
 
 // 快捷鍵預設值
 let hotkeys = config.hotkeys ?? {
@@ -263,6 +295,7 @@ function createWindow() {
             height: bounds.height,
             title: title || 'PoE Helper Viewer',
             frame: false,
+            opacity: getViewerOpacity(id),
             backgroundColor: '#121212',
             webPreferences: {
                 preload: path.join(__dirname, 'preload.cjs'),
@@ -321,6 +354,29 @@ function createWindow() {
         viewerData[id] = { ...viewerData[id], ...data };
         if (viewerWindows[id] && !viewerWindows[id].isDestroyed()) {
             viewerWindows[id].webContents.send('update-viewer-data', viewerData[id]);
+        }
+    });
+
+    ipcMain.handle('save-image-data-url', (event, dataUrl) => {
+        return saveDataUrlToUserData(dataUrl);
+    });
+
+    ipcMain.on('set-viewer-opacity', (event, { id, value }) => {
+        const clamped = Math.min(1.0, Math.max(0.2, Number(value) || 1));
+        saveViewerOpacity(id, clamped);
+        if (viewerWindows[id] && !viewerWindows[id].isDestroyed()) {
+            viewerWindows[id].setOpacity(clamped);
+        }
+    });
+
+    ipcMain.handle('get-viewer-opacity', (event, id) => {
+        return getViewerOpacity(id);
+    });
+
+    ipcMain.on('viewer-images-changed', (event, { id, images }) => {
+        viewerData[id] = { ...(viewerData[id] || {}), images };
+        if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('viewer-images-changed', { id, images });
         }
     });
 
