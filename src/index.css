@@ -8,8 +8,8 @@
   font-family: 'Inter', 'Noto Sans TC', 'Microsoft JhengHei', system-ui, Avenir, Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
-  color-scheme: light;
-  color: #d9ccb4;
+  color-scheme: dark;
+  color: #e6d8bd;
   background-color: transparent;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,7 +22,7 @@ body {
   min-width: 280px;
   min-height: 100vh;
   background-color: transparent;
-  color: #d9ccb4;
+  color: #e6d8bd;
 }
 
 #root {
@@ -31,85 +31,78 @@ body {
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border-radius: 16px;
-  /* Electron 無邊框視窗的圓角效果 */
-  box-shadow: 0 10px 28px rgba(0, 0, 0, 0.1);
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
 }
 
+/* ============================================================
+   Theme Tokens & Shell
+   ============================================================ */
 .poe-shell {
-  --poe-bg: #0b0908;
-  --poe-panel: rgba(19, 16, 14, 0.92);
-  --poe-panel-soft: rgba(31, 25, 21, 0.86);
-  --poe-border: rgba(150, 31, 35, 0.36);
-  --poe-border-strong: rgba(214, 80, 43, 0.58);
-  --poe-text: #e6d8bd;
-  --poe-muted: #a58f75;
+  --poe-bg: #0c0a09;
+  --poe-panel: rgba(20, 16, 14, 0.95);
+  --poe-panel-soft: rgba(31, 25, 21, 0.92);
+  --poe-border: rgba(180, 62, 46, 0.3);
+  --poe-border-strong: rgba(218, 108, 56, 0.58);
+  --poe-text: #ebe0ca;
+  --poe-muted: #a69178;
   --poe-ink: #1c1511;
-  --poe-gold: #d7a85a;
-  --poe-gold-soft: #7b4b25;
-  --poe-red: #9b111e;
+  --poe-gold: #dfae5f;
+  --poe-gold-soft: #8a562c;
+  --poe-red: #a31623;
   --poe-green: #6e8a4d;
-  --poe-ember: #d65a2f;
+  --poe-ember: #d96234;
   --poe-iron: #26211d;
-  --poe-shadow: rgba(0, 0, 0, 0.1);
+  --poe-shadow: rgba(0, 0, 0, 0.24);
   background:
-    linear-gradient(90deg, rgba(214, 90, 47, 0.045) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(214, 90, 47, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 50% -8%, rgba(154, 17, 30, 0.28), transparent 34%),
-    radial-gradient(circle at 95% 16%, rgba(214, 90, 47, 0.14), transparent 28%),
-    linear-gradient(145deg, rgba(7, 6, 6, 0.99), rgba(24, 17, 14, 0.99) 50%, rgba(6, 5, 5, 0.99));
-  background-size: 28px 28px, 28px 28px, auto, auto, auto;
+    radial-gradient(circle at 50% -10%, rgba(154, 17, 30, 0.22), transparent 38%),
+    radial-gradient(circle at 96% 14%, rgba(214, 90, 47, 0.1), transparent 30%),
+    linear-gradient(160deg, #0d0a09 0%, #15100e 52%, #0a0807 100%);
+  border: 1px solid rgba(196, 86, 52, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.08);
   line-height: 1.55;
 }
 
 .poe-mode-light {
-  --poe-bg: #efe1c8;
-  --poe-panel: rgba(242, 226, 198, 0.92);
-  --poe-panel-soft: rgba(250, 235, 205, 0.9);
-  --poe-border: rgba(126, 28, 26, 0.28);
-  --poe-border-strong: rgba(154, 17, 30, 0.46);
-  --poe-text: #2a1712;
-  --poe-muted: #725343;
+  color-scheme: light;
+  --poe-bg: #efe2cb;
+  --poe-panel: rgba(244, 230, 205, 0.96);
+  --poe-panel-soft: rgba(250, 239, 216, 0.94);
+  --poe-border: rgba(132, 44, 34, 0.24);
+  --poe-border-strong: rgba(154, 24, 32, 0.48);
+  --poe-text: #2a1812;
+  --poe-muted: #705240;
+  --poe-gold: #9a5b18;
   --poe-shadow: rgba(89, 38, 18, 0.08);
+  border-color: rgba(132, 44, 34, 0.32);
+  box-shadow: inset 0 1px 0 rgba(255, 252, 242, 0.65);
 }
 
-.poe-bg-dark,
-.poe-bg-parchment {
-  background: var(--poe-bg);
+.poe-bg-dark {
+  background:
+    radial-gradient(circle at 50% -10%, rgba(154, 17, 30, 0.22), transparent 38%),
+    radial-gradient(circle at 96% 14%, rgba(214, 90, 47, 0.1), transparent 30%),
+    linear-gradient(160deg, #0d0a09 0%, #15100e 52%, #0a0807 100%);
 }
 
 .poe-bg-parchment {
   background:
-    linear-gradient(90deg, rgba(214, 90, 47, 0.05) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(214, 90, 47, 0.035) 1px, transparent 1px),
-    linear-gradient(145deg, rgba(31, 22, 18, 0.98), rgba(15, 11, 10, 0.98)),
-    var(--poe-bg);
-  background-size: 28px 28px, 28px 28px, auto, auto;
-}
-
-.poe-mode-light.poe-bg-parchment {
-  background:
-    linear-gradient(90deg, rgba(126, 28, 26, 0.055) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(126, 28, 26, 0.035) 1px, transparent 1px),
-    radial-gradient(circle at 12% 0%, rgba(154, 17, 30, 0.12), transparent 26%),
-    linear-gradient(145deg, rgba(245, 232, 207, 0.98), rgba(224, 203, 170, 0.98) 58%, rgba(238, 220, 190, 0.98)),
-    var(--poe-bg);
-  background-size: 32px 32px, 32px 32px, auto, auto, auto;
+    radial-gradient(circle at 14% 0%, rgba(154, 17, 30, 0.09), transparent 30%),
+    linear-gradient(160deg, #f5e9d3 0%, #ead8ba 55%, #f1e3ca 100%);
 }
 
 .poe-panel {
   background:
-    linear-gradient(180deg, rgba(218, 82, 45, 0.09), rgba(0, 0, 0, 0.02)),
-    linear-gradient(90deg, rgba(255, 220, 150, 0.035), transparent 18%, transparent 82%, rgba(255, 220, 150, 0.025)),
+    linear-gradient(180deg, rgba(218, 82, 45, 0.07), rgba(0, 0, 0, 0.02)),
     var(--poe-panel);
   border-color: var(--poe-border);
-  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.06), inset 0 -1px 0 rgba(0, 0, 0, 0.52), 0 10px 24px var(--poe-shadow);
-  backdrop-filter: blur(16px);
+  box-shadow: inset 0 1px 0 rgba(255, 220, 160, 0.05), 0 6px 18px var(--poe-shadow);
+  backdrop-filter: blur(14px);
 }
 
 .poe-panel-light {
   background:
-    linear-gradient(180deg, rgba(255, 248, 225, 0.68), rgba(215, 187, 144, 0.42)),
+    linear-gradient(180deg, rgba(255, 249, 232, 0.72), rgba(226, 200, 160, 0.32)),
     var(--poe-panel);
 }
 
@@ -127,45 +120,63 @@ body {
   color: var(--poe-muted);
 }
 
+/* ============================================================
+   Titlebar & Sigil
+   ============================================================ */
 .poe-titlebar {
   position: relative;
-  min-height: 40px;
+  min-height: 42px;
 }
 
 .poe-titlebar h1,
 .poe-act-pill {
   font-family: 'Cinzel', 'Noto Serif TC', serif;
-  letter-spacing: 0;
+  letter-spacing: 0.01em;
 }
 
 .poe-titlebar::after,
 .poe-actbar::after {
   content: "";
   position: absolute;
-  left: 12px;
-  right: 12px;
+  left: 10px;
+  right: 10px;
   bottom: 0;
   height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(96, 13, 16, 0.75), var(--poe-border-strong), rgba(96, 13, 16, 0.75), transparent);
+  background: linear-gradient(90deg, transparent, rgba(132, 34, 30, 0.45), var(--poe-border-strong), rgba(132, 34, 30, 0.45), transparent);
   pointer-events: none;
 }
 
 .poe-sigil {
   background:
-    radial-gradient(circle at 40% 26%, rgba(255, 197, 116, 0.54), transparent 30%),
-    linear-gradient(145deg, #d65a2f, #8d1420 48%, #14100e);
-  border: 1px solid rgba(236, 120, 56, 0.46);
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.58), 0 0 18px rgba(154, 17, 30, 0.3);
+    radial-gradient(circle at 38% 26%, rgba(255, 204, 128, 0.56), transparent 34%),
+    linear-gradient(145deg, #d96234, #931522 50%, #1d110e);
+  border: 1px solid rgba(236, 124, 62, 0.52);
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.45), 0 2px 12px rgba(154, 17, 30, 0.34);
 }
 
+/* ============================================================
+   Buttons & Interactive Controls
+   ============================================================ */
 .poe-icon-btn,
 .poe-shell button {
-  transition: transform 140ms ease, background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease;
+  transition: transform 130ms ease, background-color 140ms ease, border-color 140ms ease, color 140ms ease, box-shadow 140ms ease, opacity 140ms ease;
+}
+
+.poe-shell button:focus-visible,
+.poe-modal button:focus-visible,
+.poe-viewer button:focus-visible {
+  outline: 2px solid var(--poe-gold);
+  outline-offset: 1px;
 }
 
 .poe-shell button:hover {
-  background-color: rgba(154, 17, 30, 0.22);
-  color: #f1c071;
+  background-color: rgba(154, 17, 30, 0.2);
+  color: #f3c678;
+}
+
+.poe-mode-light button:hover {
+  background-color: rgba(154, 17, 30, 0.12);
+  color: #6e151c;
 }
 
 .poe-shell button:active {
@@ -177,12 +188,28 @@ body {
 .poe-primary-btn,
 .poe-action-secondary,
 .poe-action-success {
-  color: #fff3d4;
+  color: #fff3d6;
   border: 1px solid var(--poe-border-strong);
   background:
-    linear-gradient(180deg, rgba(229, 93, 48, 0.28), rgba(89, 13, 20, 0.32)),
-    rgba(51, 28, 22, 0.58);
-  box-shadow: inset 0 1px 0 rgba(255, 210, 145, 0.06), 0 6px 16px rgba(0, 0, 0, 0.08);
+    linear-gradient(180deg, rgba(229, 93, 48, 0.24), rgba(89, 13, 20, 0.3)),
+    rgba(46, 26, 20, 0.62);
+  box-shadow: inset 0 1px 0 rgba(255, 214, 152, 0.08), 0 4px 12px rgba(0, 0, 0, 0.14);
+}
+
+.poe-action-secondary {
+  border-color: rgba(176, 66, 46, 0.34);
+  background:
+    linear-gradient(180deg, rgba(255, 214, 152, 0.055), rgba(0, 0, 0, 0.08)),
+    rgba(34, 24, 20, 0.72);
+  color: #e9d9bd;
+}
+
+.poe-action-secondary:hover {
+  border-color: var(--poe-border-strong);
+  background:
+    linear-gradient(180deg, rgba(214, 90, 47, 0.22), rgba(112, 22, 23, 0.26)),
+    rgba(46, 25, 20, 0.82);
+  color: #fff3d6;
 }
 
 .poe-action-muted,
@@ -191,56 +218,110 @@ body {
 .poe-chip {
   color: var(--poe-muted);
   border: 1px solid rgba(132, 37, 34, 0.24);
-  background: rgba(0, 0, 0, 0.28);
+  background: rgba(0, 0, 0, 0.26);
+}
+
+.poe-action-success {
+  color: #f3dbb0;
+  background:
+    linear-gradient(180deg, rgba(198, 118, 55, 0.24), rgba(81, 25, 18, 0.26)),
+    rgba(48, 30, 22, 0.56);
+  border-color: rgba(214, 118, 58, 0.46);
 }
 
 .poe-mode-light .poe-icon-btn-active,
 .poe-mode-light .poe-toggle-active,
-.poe-mode-light .poe-primary-btn,
 .poe-mode-light .poe-action-secondary,
 .poe-mode-light .poe-action-success {
   color: #391812;
-  border-color: rgba(154, 17, 30, 0.42);
+  border-color: rgba(142, 36, 32, 0.3);
   background:
-    linear-gradient(180deg, rgba(255, 242, 215, 0.78), rgba(202, 153, 102, 0.32)),
-    rgba(232, 206, 166, 0.68);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 245, 0.45), 0 5px 14px rgba(91, 46, 20, 0.08);
+    linear-gradient(180deg, rgba(255, 247, 228, 0.88), rgba(220, 186, 138, 0.36)),
+    rgba(241, 220, 186, 0.8);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 248, 0.6), 0 3px 10px rgba(91, 46, 20, 0.07);
+}
+
+.poe-mode-light .poe-action-secondary:hover,
+.poe-mode-light .poe-icon-btn-active {
+  border-color: rgba(154, 17, 30, 0.5);
+  color: #64161a;
+  background:
+    linear-gradient(180deg, rgba(255, 243, 214, 0.96), rgba(214, 166, 112, 0.44)),
+    rgba(238, 210, 170, 0.88);
+}
+
+.poe-mode-light .poe-action-success {
+  border-color: rgba(154, 68, 28, 0.42);
+  background:
+    linear-gradient(180deg, rgba(252, 236, 200, 0.92), rgba(212, 158, 98, 0.34)),
+    rgba(238, 212, 172, 0.82);
 }
 
 .poe-mode-light .poe-action-muted,
 .poe-mode-light .poe-toggle-idle,
 .poe-mode-light .poe-hotkey-strip,
 .poe-mode-light .poe-chip {
-  color: #725343;
+  color: #6b4c3a;
   border-color: rgba(126, 28, 26, 0.2);
-  background: rgba(255, 245, 222, 0.48);
+  background: rgba(255, 247, 228, 0.56);
 }
 
-.poe-mode-light .poe-guide-card {
-  background:
-    linear-gradient(180deg, rgba(255, 246, 220, 0.72), rgba(205, 168, 120, 0.18)),
-    rgba(239, 219, 185, 0.7);
+.poe-danger-btn {
+  color: #ffe8e0;
+  background: linear-gradient(180deg, rgba(168, 20, 34, 0.95), rgba(84, 10, 18, 0.95));
+  border: 1px solid rgba(242, 110, 74, 0.48);
+  box-shadow: 0 4px 14px rgba(130, 14, 24, 0.28);
 }
 
-.poe-mode-light .poe-guide-card-idle {
-  color: #624232;
-  border-color: rgba(126, 28, 26, 0.18);
+.poe-danger-btn:hover {
+  background: linear-gradient(180deg, rgba(192, 24, 40, 0.98), rgba(104, 14, 24, 0.98)) !important;
+  color: #ffffff !important;
 }
 
-.poe-mode-light .poe-guide-card-active {
-  color: #37150f;
-  border-color: rgba(154, 17, 30, 0.46);
-  background:
-    linear-gradient(180deg, rgba(178, 35, 45, 0.18), rgba(255, 238, 205, 0.36)),
-    rgba(235, 204, 159, 0.78);
+.poe-primary-btn {
+  color: #fff6e0 !important;
+  background: linear-gradient(180deg, rgba(216, 92, 47, 0.95), rgba(128, 24, 26, 0.95));
+  border: 1px solid rgba(242, 146, 84, 0.54);
+  box-shadow: 0 4px 14px rgba(145, 36, 24, 0.26);
 }
 
-.poe-action-success {
-  color: #e9cf9e;
-  background:
-    linear-gradient(180deg, rgba(198, 118, 55, 0.22), rgba(81, 25, 18, 0.24)),
-    rgba(48, 30, 22, 0.44);
-  border-color: rgba(201, 99, 48, 0.42);
+.poe-primary-btn:hover {
+  background: linear-gradient(180deg, rgba(232, 106, 56, 0.98), rgba(148, 28, 30, 0.98)) !important;
+  color: #ffffff !important;
+}
+
+.poe-danger-subtle {
+  color: #f08878;
+  border: 1px solid rgba(186, 44, 44, 0.34);
+  background: rgba(140, 20, 26, 0.16);
+}
+
+.poe-danger-subtle:hover {
+  color: #ffd7cf !important;
+  border-color: rgba(226, 74, 62, 0.54);
+  background: rgba(168, 24, 34, 0.3) !important;
+}
+
+.poe-mode-light .poe-danger-subtle {
+  color: #9e1b24;
+  border-color: rgba(168, 34, 42, 0.28);
+  background: rgba(168, 24, 34, 0.08);
+}
+
+.poe-mode-light .poe-danger-subtle:hover {
+  color: #7c1018 !important;
+  background: rgba(168, 24, 34, 0.16) !important;
+}
+
+/* ============================================================
+   Guide Cards & Settings Sections
+   ============================================================ */
+.poe-section-label {
+  font-size: calc(10px * var(--poe-ui-scale, 1));
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--poe-muted);
 }
 
 .poe-guide-card {
@@ -264,29 +345,33 @@ body {
   color: #fff3d4;
   border-color: var(--poe-border-strong);
   background:
-    linear-gradient(180deg, rgba(154, 17, 30, 0.34), rgba(214, 90, 47, 0.14)),
-    rgba(64, 18, 17, 0.54);
+    linear-gradient(180deg, rgba(164, 22, 34, 0.36), rgba(214, 90, 47, 0.14)),
+    rgba(64, 18, 17, 0.56);
+  box-shadow: inset 0 1px 0 rgba(255, 214, 148, 0.14);
 }
 
-.poe-danger-btn {
-  color: #ffe4dc;
+.poe-mode-light .poe-guide-card {
   background:
-    linear-gradient(180deg, rgba(155, 17, 30, 0.92), rgba(64, 9, 14, 0.9));
-  border: 1px solid rgba(237, 100, 64, 0.42);
+    linear-gradient(180deg, rgba(255, 248, 226, 0.78), rgba(212, 178, 132, 0.2)),
+    rgba(241, 222, 190, 0.76);
 }
 
-.poe-primary-btn {
+.poe-mode-light .poe-guide-card-idle {
+  color: #624232;
+  border-color: rgba(126, 28, 26, 0.18);
+}
+
+.poe-mode-light .poe-guide-card-active {
+  color: #37150f;
+  border-color: rgba(154, 17, 30, 0.5);
   background:
-    linear-gradient(180deg, rgba(214, 90, 47, 0.94), rgba(112, 22, 23, 0.94));
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+    linear-gradient(180deg, rgba(178, 35, 45, 0.16), rgba(255, 240, 210, 0.42)),
+    rgba(238, 208, 164, 0.86);
 }
 
-.poe-tool-glyph {
-  color: #f1c071;
-  background: rgba(154, 17, 30, 0.18);
-  border: 1px solid rgba(214, 90, 47, 0.28);
-}
-
+/* ============================================================
+   Responsive UI Font Scaling
+   ============================================================ */
 .poe-shell .text-\[8px\],
 .poe-modal .text-\[8px\],
 .poe-viewer .text-\[8px\] {
@@ -332,10 +417,9 @@ body {
   font-size: calc(14px * var(--poe-ui-scale, 1));
 }
 
-.poe-divider {
-  background: linear-gradient(180deg, transparent, var(--poe-border), transparent);
-}
-
+/* ============================================================
+   Font Size Menu & Range Slider
+   ============================================================ */
 .poe-font-size-trigger {
   min-height: 30px;
 }
@@ -344,10 +428,16 @@ body {
   color: var(--poe-text);
   border-color: var(--poe-border-strong);
   background:
-    linear-gradient(180deg, rgba(154, 17, 30, 0.18), rgba(0, 0, 0, 0.08)),
-    rgba(18, 14, 12, 0.98);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.08);
+    linear-gradient(180deg, rgba(154, 17, 30, 0.14), rgba(0, 0, 0, 0.06)),
+    rgba(20, 15, 13, 0.98);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(14px);
+}
+
+.poe-mode-light .poe-font-size-menu {
+  background: rgba(248, 236, 212, 0.98);
+  border-color: rgba(132, 34, 30, 0.34);
+  box-shadow: 0 10px 24px rgba(89, 38, 18, 0.12);
 }
 
 .poe-font-size-option {
@@ -357,7 +447,13 @@ body {
 .poe-font-size-option:hover,
 .poe-font-size-option-active {
   color: #fff3d4;
-  background: rgba(154, 17, 30, 0.28);
+  background: rgba(154, 17, 30, 0.32);
+}
+
+.poe-mode-light .poe-font-size-option:hover,
+.poe-mode-light .poe-font-size-option-active {
+  color: #64161a;
+  background: rgba(154, 17, 30, 0.14);
 }
 
 .poe-range {
@@ -365,22 +461,29 @@ body {
 }
 
 .poe-range::-webkit-slider-thumb {
-  border: 1px solid rgba(255, 196, 125, 0.7);
+  border: 1px solid rgba(255, 196, 125, 0.75);
   background: linear-gradient(180deg, #f0a35a, #8d1420);
 }
 
 .poe-update-badge {
   color: #f8f0d6;
-  background: rgba(154, 17, 30, 0.86);
+  background: rgba(154, 17, 30, 0.9);
 }
 
+/* ============================================================
+   Progress Bars & Timer
+   ============================================================ */
 .poe-progress-track {
-  background: rgba(0, 0, 0, 0.24);
+  background: rgba(0, 0, 0, 0.28);
+}
+
+.poe-mode-light .poe-progress-track {
+  background: rgba(126, 28, 26, 0.14);
 }
 
 .poe-progress-fill {
-  background: linear-gradient(90deg, #5f090f, #b11d23 45%, #e06c32 78%, #d7a85a);
-  box-shadow: 0 0 14px rgba(214, 90, 47, 0.36);
+  background: linear-gradient(90deg, #740d15, #b82128 45%, #e06c32 78%, #dfae5f);
+  box-shadow: 0 0 12px rgba(214, 90, 47, 0.38);
 }
 
 .poe-settings-panel {
@@ -392,191 +495,397 @@ body {
 }
 
 .poe-clock {
-  color: #f0c071;
+  color: #f2c474;
+  font-variant-numeric: tabular-nums;
   background:
-    linear-gradient(180deg, rgba(0, 0, 0, 0.42), rgba(154, 17, 30, 0.1)),
-    rgba(0, 0, 0, 0.2);
+    linear-gradient(180deg, rgba(0, 0, 0, 0.44), rgba(154, 17, 30, 0.08)),
+    rgba(0, 0, 0, 0.22);
   border: 1px solid rgba(214, 90, 47, 0.3);
-  text-shadow: 0 0 12px rgba(214, 90, 47, 0.36);
+  text-shadow: 0 0 10px rgba(214, 90, 47, 0.3);
 }
 
 .poe-mode-light .poe-clock {
   color: #64161a;
   background:
-    linear-gradient(180deg, rgba(255, 248, 226, 0.84), rgba(196, 156, 103, 0.22)),
-    rgba(240, 220, 185, 0.7);
+    linear-gradient(180deg, rgba(255, 250, 234, 0.88), rgba(206, 168, 118, 0.22)),
+    rgba(242, 224, 192, 0.78);
   border-color: rgba(126, 28, 26, 0.26);
   text-shadow: none;
 }
 
+/* ============================================================
+   Act Navigation Bar & Chapter Dropdown
+   ============================================================ */
 .poe-actbar {
   position: relative;
 }
 
 .poe-act-pill {
-  color: #f0c071;
+  color: #f3c678;
   background:
     linear-gradient(180deg, rgba(154, 17, 30, 0.28), rgba(214, 90, 47, 0.12)),
-    rgba(0, 0, 0, 0.18);
-  border: 1px solid rgba(214, 90, 47, 0.28);
+    rgba(0, 0, 0, 0.22);
+  border: 1px solid rgba(214, 90, 47, 0.32);
+}
+
+.poe-act-pill:hover {
+  border-color: rgba(236, 140, 74, 0.62);
+  background:
+    linear-gradient(180deg, rgba(176, 24, 38, 0.38), rgba(214, 90, 47, 0.18)),
+    rgba(0, 0, 0, 0.3);
 }
 
 .poe-mode-light .poe-act-pill {
   color: #64161a;
   background:
-    linear-gradient(180deg, rgba(255, 248, 226, 0.82), rgba(194, 144, 88, 0.28)),
-    rgba(238, 211, 172, 0.78);
+    linear-gradient(180deg, rgba(255, 249, 230, 0.88), rgba(204, 158, 102, 0.28)),
+    rgba(239, 214, 176, 0.84);
   border-color: rgba(126, 28, 26, 0.3);
 }
 
+.poe-chapter-menu {
+  background: rgba(19, 14, 12, 0.97);
+  border: 1px solid var(--poe-border-strong);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.52);
+  backdrop-filter: blur(16px);
+}
+
+.poe-mode-light .poe-chapter-menu {
+  background: rgba(248, 236, 214, 0.98);
+  border-color: rgba(132, 34, 30, 0.38);
+  box-shadow: 0 16px 36px rgba(68, 30, 14, 0.18);
+}
+
+.poe-chapter-item {
+  color: var(--poe-text);
+}
+
+.poe-chapter-item:hover {
+  background: rgba(154, 17, 30, 0.2);
+}
+
+.poe-mode-light .poe-chapter-item:hover {
+  background: rgba(154, 17, 30, 0.1);
+}
+
+.poe-chapter-item-active {
+  background: rgba(154, 17, 30, 0.3);
+  border-color: rgba(218, 108, 56, 0.45);
+  color: #fff3d4;
+}
+
+.poe-mode-light .poe-chapter-item-active {
+  background: rgba(154, 17, 30, 0.14);
+  border-color: rgba(154, 17, 30, 0.38);
+  color: #5c1216;
+}
+
+/* ============================================================
+   Task List & Task Cards
+   ============================================================ */
 .poe-tasklist {
-  background:
-    linear-gradient(90deg, rgba(150, 31, 35, 0.045) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(214, 90, 47, 0.035) 1px, transparent 1px),
-    var(--poe-bg);
-  background-size: 32px 32px;
+  background: transparent;
 }
 
 .poe-task {
-  line-height: 1.6;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.46);
+  line-height: 1.58;
+  position: relative;
 }
 
 .poe-task-open {
-  color: #f0dfc4;
+  color: #efe1c8;
   background:
-    linear-gradient(180deg, rgba(255, 214, 153, 0.055), rgba(0, 0, 0, 0.04)),
-    rgba(34, 27, 23, 0.94);
-  border-color: rgba(168, 45, 39, 0.34);
-  box-shadow: 0 4px 14px var(--poe-shadow);
-}
-
-.poe-mode-light .poe-tasklist {
-  background:
-    linear-gradient(90deg, rgba(126, 28, 26, 0.05) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(126, 28, 26, 0.035) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(244, 229, 199, 0.9), rgba(229, 209, 177, 0.88)),
-    var(--poe-bg);
-  background-size: 32px 32px, 32px 32px, auto, auto;
-}
-
-.poe-mode-light .poe-task-open {
-  color: #2a1712;
-  background:
-    linear-gradient(180deg, rgba(255, 249, 232, 0.76), rgba(209, 178, 132, 0.2)),
-    rgba(246, 229, 197, 0.94);
-  border-color: rgba(126, 28, 26, 0.28);
-  box-shadow: 0 4px 14px rgba(91, 46, 20, 0.08);
-  text-shadow: none;
-}
-
-.poe-mode-light .poe-task-open:hover {
-  border-color: rgba(154, 17, 30, 0.48);
-  background:
-    linear-gradient(180deg, rgba(255, 246, 220, 0.92), rgba(220, 185, 137, 0.32)),
-    rgba(248, 233, 203, 0.96);
-}
-
-.poe-mode-light .poe-task-done {
-  color: rgba(95, 73, 55, 0.74);
-  background:
-    linear-gradient(180deg, rgba(196, 174, 137, 0.42), rgba(236, 217, 184, 0.24)),
-    rgba(221, 199, 164, 0.76);
-  border-color: rgba(105, 85, 62, 0.28);
-  text-shadow: none;
-}
-
-.poe-mode-light .poe-checkbox-open {
-  border-color: rgba(126, 28, 26, 0.52);
-  background: rgba(255, 247, 225, 0.62);
-}
-
-.poe-mode-light .poe-checkbox-done {
-  color: #fff2d2;
-  border-color: rgba(126, 28, 26, 0.55);
-  background: linear-gradient(180deg, #b9232d, #72121a);
+    linear-gradient(180deg, rgba(255, 220, 165, 0.045), rgba(0, 0, 0, 0.06)),
+    rgba(30, 24, 20, 0.9);
+  border-color: rgba(168, 56, 44, 0.28);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .poe-task-open:hover {
   border-color: var(--poe-border-strong);
   background:
-    linear-gradient(180deg, rgba(154, 17, 30, 0.24), rgba(0, 0, 0, 0.03)),
-    var(--poe-panel-soft);
+    linear-gradient(180deg, rgba(164, 24, 36, 0.2), rgba(0, 0, 0, 0.04)),
+    rgba(38, 28, 24, 0.94);
+}
+
+.poe-task-next {
+  border-color: rgba(223, 174, 95, 0.55) !important;
+  border-left: 3px solid #dfae5f !important;
+  background:
+    linear-gradient(90deg, rgba(223, 174, 95, 0.12), rgba(154, 17, 30, 0.08) 45%, rgba(30, 24, 20, 0.94)),
+    rgba(34, 26, 21, 0.95) !important;
+  box-shadow: 0 3px 14px rgba(214, 120, 48, 0.16);
+}
+
+.poe-task-note {
+  border-color: rgba(223, 174, 95, 0.42);
+  background:
+    linear-gradient(180deg, rgba(223, 174, 95, 0.1), rgba(154, 17, 30, 0.06)),
+    rgba(36, 26, 18, 0.92);
 }
 
 .poe-task-done {
-  color: rgba(213, 190, 154, 0.76);
+  color: rgba(190, 168, 138, 0.58);
+  background: rgba(20, 17, 15, 0.48);
+  border-color: rgba(100, 78, 58, 0.22);
+}
+
+.poe-task-done:hover {
+  color: rgba(215, 194, 164, 0.8);
+  border-color: rgba(140, 96, 68, 0.36);
+}
+
+.poe-mode-light .poe-task-open {
+  color: #2a1712;
   background:
-    linear-gradient(180deg, rgba(97, 77, 57, 0.2), rgba(0, 0, 0, 0.05)),
-    rgba(23, 21, 19, 0.52);
-  border-color: rgba(96, 75, 53, 0.38);
+    linear-gradient(180deg, rgba(255, 250, 236, 0.82), rgba(224, 196, 152, 0.22)),
+    rgba(248, 235, 208, 0.92);
+  border-color: rgba(132, 44, 34, 0.24);
+  box-shadow: 0 2px 8px rgba(91, 46, 20, 0.06);
+}
+
+.poe-mode-light .poe-task-open:hover {
+  border-color: rgba(154, 17, 30, 0.46);
+  background:
+    linear-gradient(180deg, rgba(255, 248, 226, 0.96), rgba(232, 200, 152, 0.34)),
+    rgba(250, 238, 212, 0.96);
+}
+
+.poe-mode-light .poe-task-next {
+  border-color: rgba(176, 86, 28, 0.56) !important;
+  border-left: 3px solid #b5212a !important;
+  background:
+    linear-gradient(90deg, rgba(186, 36, 44, 0.1), rgba(240, 188, 110, 0.14) 50%, rgba(252, 242, 220, 0.96)) !important;
+  box-shadow: 0 3px 12px rgba(154, 48, 24, 0.12);
+}
+
+.poe-mode-light .poe-task-note {
+  border-color: rgba(176, 108, 28, 0.42);
+  background: rgba(252, 239, 206, 0.92);
+}
+
+.poe-mode-light .poe-task-done {
+  color: rgba(102, 78, 58, 0.58);
+  background: rgba(226, 206, 174, 0.52);
+  border-color: rgba(118, 92, 68, 0.2);
 }
 
 .poe-checkbox-open {
-  border-color: rgba(229, 98, 53, 0.58);
+  border-color: rgba(224, 108, 58, 0.58);
   background: rgba(0, 0, 0, 0.28);
 }
 
 .poe-checkbox-done {
-  color: #f7e6c5;
-  border-color: rgba(216, 90, 47, 0.62);
-  background: linear-gradient(180deg, #9b111e, #4d0a10);
+  color: #fff3d6;
+  border-color: rgba(216, 90, 47, 0.65);
+  background: linear-gradient(180deg, #ad1725, #5d0c14);
 }
 
+.poe-mode-light .poe-checkbox-open {
+  border-color: rgba(136, 34, 30, 0.48);
+  background: rgba(255, 250, 236, 0.72);
+}
+
+.poe-mode-light .poe-checkbox-done {
+  color: #fff6dc;
+  border-color: rgba(126, 28, 26, 0.55);
+  background: linear-gradient(180deg, #b9232d, #72121a);
+}
+
+/* Subtask connector */
+.poe-task-sub::before {
+  content: "";
+  position: absolute;
+  left: -13px;
+  top: 0;
+  bottom: 0;
+  width: 1.5px;
+  background: var(--poe-border);
+  border-radius: 2px;
+}
+
+/* Semantic Inline Reward / Trial Badges */
+.poe-inline-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 5px;
+  margin: 0 2px;
+  border-radius: 5px;
+  font-size: 0.86em;
+  font-weight: 600;
+  line-height: 1.45;
+  vertical-align: baseline;
+  border: 1px solid transparent;
+}
+
+.poe-tag-passive {
+  color: #f7cf7d;
+  background: rgba(214, 152, 48, 0.16);
+  border-color: rgba(223, 174, 95, 0.34);
+}
+
+.poe-tag-spirit {
+  color: #8ee4e8;
+  background: rgba(34, 158, 172, 0.18);
+  border-color: rgba(88, 206, 214, 0.34);
+}
+
+.poe-tag-resist {
+  color: #9be09e;
+  background: rgba(62, 148, 74, 0.18);
+  border-color: rgba(114, 202, 122, 0.32);
+}
+
+.poe-tag-trial {
+  color: #ff9c92;
+  background: rgba(186, 28, 42, 0.22);
+  border-color: rgba(232, 82, 74, 0.36);
+}
+
+.poe-tag-info {
+  color: #e4c59c;
+  background: rgba(180, 130, 82, 0.14);
+  border-color: rgba(180, 130, 82, 0.26);
+}
+
+.poe-mode-light .poe-tag-passive {
+  color: #824908;
+  background: rgba(214, 146, 36, 0.16);
+  border-color: rgba(180, 114, 22, 0.32);
+}
+
+.poe-mode-light .poe-tag-spirit {
+  color: #0e606b;
+  background: rgba(24, 146, 160, 0.14);
+  border-color: rgba(24, 146, 160, 0.3);
+}
+
+.poe-mode-light .poe-tag-resist {
+  color: #1f6428;
+  background: rgba(46, 140, 62, 0.14);
+  border-color: rgba(46, 140, 62, 0.28);
+}
+
+.poe-mode-light .poe-tag-trial {
+  color: #921420;
+  background: rgba(176, 24, 38, 0.12);
+  border-color: rgba(176, 24, 38, 0.28);
+}
+
+.poe-mode-light .poe-tag-info {
+  color: #63442e;
+  background: rgba(132, 88, 52, 0.12);
+  border-color: rgba(132, 88, 52, 0.22);
+}
+
+.poe-task-done .poe-inline-badge {
+  opacity: 0.55;
+}
+
+/* Next-Step Pill */
+.poe-next-pill {
+  font-size: calc(9px * var(--poe-ui-scale, 1));
+  color: #f7cf7d;
+  background: rgba(223, 174, 95, 0.16);
+  border: 1px solid rgba(223, 174, 95, 0.36);
+}
+
+.poe-mode-light .poe-next-pill {
+  color: #8b1822;
+  background: rgba(186, 36, 44, 0.12);
+  border-color: rgba(186, 36, 44, 0.3);
+}
+
+/* Chapter Completed Card */
+.poe-complete-card {
+  background:
+    linear-gradient(135deg, rgba(223, 174, 95, 0.12), rgba(154, 17, 30, 0.18)),
+    rgba(24, 18, 15, 0.88);
+  border: 1px solid rgba(223, 174, 95, 0.38);
+}
+
+.poe-mode-light .poe-complete-card {
+  background:
+    linear-gradient(135deg, rgba(255, 245, 218, 0.9), rgba(232, 198, 150, 0.5)),
+    rgba(246, 228, 198, 0.92);
+  border-color: rgba(164, 58, 34, 0.36);
+}
+
+/* ============================================================
+   Toast
+   ============================================================ */
+.poe-toast {
+  color: #fff3d6;
+  background: rgba(24, 16, 14, 0.96);
+  border: 1px solid rgba(223, 174, 95, 0.42);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(12px);
+}
+
+.poe-mode-light .poe-toast {
+  color: #2a1712;
+  background: rgba(252, 242, 222, 0.98);
+  border-color: rgba(154, 34, 32, 0.36);
+  box-shadow: 0 10px 24px rgba(68, 30, 14, 0.18);
+}
+
+/* ============================================================
+   Modals (Full Dark & Light Parity)
+   ============================================================ */
 .poe-modal-backdrop {
   background:
-    radial-gradient(circle at center, rgba(154, 17, 30, 0.18), transparent 42%),
-    rgba(0, 0, 0, 0.78);
+    radial-gradient(circle at center, rgba(154, 17, 30, 0.14), transparent 45%),
+    rgba(0, 0, 0, 0.72);
 }
 
 .poe-modal {
   color: var(--poe-text);
   background:
-    linear-gradient(180deg, rgba(154, 17, 30, 0.12), rgba(0, 0, 0, 0.04)),
-    rgba(18, 14, 12, 0.97);
+    linear-gradient(180deg, rgba(154, 17, 30, 0.1), rgba(0, 0, 0, 0.04)),
+    rgba(19, 15, 13, 0.98);
   border-color: var(--poe-border-strong);
-  box-shadow: 0 24px 70px rgba(0, 0, 0, 0.1), inset 0 1px 0 rgba(255, 204, 144, 0.06);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 204, 144, 0.08);
 }
 
 .poe-mode-light .poe-modal {
   color: #2a1712;
   background:
-    linear-gradient(180deg, rgba(255, 250, 235, 0.7), rgba(206, 169, 120, 0.22)),
-    rgba(238, 219, 188, 0.98);
-  border-color: rgba(126, 28, 26, 0.38);
-  box-shadow: 0 24px 70px rgba(49, 26, 13, 0.1), inset 0 1px 0 rgba(255, 255, 245, 0.48);
+    linear-gradient(180deg, rgba(255, 250, 236, 0.8), rgba(214, 180, 134, 0.24)),
+    rgba(242, 225, 196, 0.99);
+  border-color: rgba(132, 34, 30, 0.38);
+  box-shadow: 0 24px 64px rgba(49, 26, 13, 0.22), inset 0 1px 0 rgba(255, 255, 248, 0.6);
 }
 
 .poe-modal-header {
   color: #f3dfbd;
   background:
-    linear-gradient(180deg, rgba(95, 9, 15, 0.92), rgba(29, 15, 13, 0.94)),
+    linear-gradient(180deg, rgba(95, 12, 18, 0.9), rgba(28, 16, 14, 0.95)),
     rgba(20, 14, 12, 0.96);
-  border-color: rgba(214, 90, 47, 0.36);
+  border-color: rgba(214, 90, 47, 0.32);
 }
 
 .poe-mode-light .poe-modal-header {
   color: #2a1712;
   background:
-    linear-gradient(180deg, rgba(255, 245, 222, 0.94), rgba(216, 181, 132, 0.7)),
-    rgba(238, 217, 184, 0.96);
-  border-color: rgba(126, 28, 26, 0.3);
+    linear-gradient(180deg, rgba(255, 247, 226, 0.96), rgba(226, 194, 148, 0.65)),
+    rgba(242, 222, 190, 0.96);
+  border-color: rgba(132, 34, 30, 0.26);
 }
 
 .poe-modal-icon {
-  color: #f1bd79;
-  background: rgba(154, 17, 30, 0.22);
-  border: 1px solid rgba(214, 90, 47, 0.28);
+  color: #f3c478;
+  background: rgba(154, 17, 30, 0.24);
+  border: 1px solid rgba(214, 90, 47, 0.32);
 }
 
 .poe-mode-light .poe-modal-icon {
   color: #8d1420;
   background: rgba(154, 17, 30, 0.1);
-  border-color: rgba(126, 28, 26, 0.18);
+  border-color: rgba(126, 28, 26, 0.22);
 }
 
 .poe-modal-subtitle {
-  color: rgba(243, 223, 189, 0.78);
+  color: rgba(243, 223, 189, 0.72);
 }
 
 .poe-mode-light .poe-modal-subtitle {
@@ -584,7 +893,7 @@ body {
 }
 
 .poe-modal-close {
-  color: rgba(243, 223, 189, 0.82);
+  color: rgba(243, 223, 189, 0.8);
 }
 
 .poe-modal-close:hover {
@@ -593,7 +902,7 @@ body {
 }
 
 .poe-mode-light .poe-modal-close {
-  color: #3b2118;
+  color: #46261b;
 }
 
 .poe-mode-light .poe-modal-close:hover {
@@ -603,34 +912,64 @@ body {
 
 .poe-modal-body {
   background:
-    linear-gradient(180deg, rgba(255, 214, 153, 0.035), rgba(0, 0, 0, 0.04)),
-    rgba(14, 9, 8, 0.7);
+    linear-gradient(180deg, rgba(255, 214, 153, 0.025), rgba(0, 0, 0, 0.04)),
+    rgba(14, 10, 9, 0.72);
 }
 
 .poe-mode-light .poe-modal-body {
   background:
-    linear-gradient(180deg, rgba(255, 248, 228, 0.72), rgba(210, 177, 130, 0.22)),
-    rgba(239, 219, 187, 0.9);
+    linear-gradient(180deg, rgba(255, 249, 232, 0.76), rgba(224, 194, 150, 0.2)),
+    rgba(244, 228, 200, 0.92);
+}
+
+.poe-modal-tips {
+  background: rgba(24, 15, 13, 0.94);
+  color: rgba(243, 223, 189, 0.78);
+  border-color: rgba(168, 44, 38, 0.34);
+}
+
+.poe-mode-light .poe-modal-tips {
+  background: rgba(248, 234, 206, 0.92);
+  color: #5c3a2a;
+  border-color: rgba(132, 34, 30, 0.22);
+}
+
+.poe-modal-textarea {
+  background: #120d0b;
+  color: #f2e2c6;
+  caret-color: #e06c32;
+}
+
+.poe-modal-textarea::placeholder {
+  color: rgba(235, 212, 178, 0.35);
+}
+
+.poe-mode-light .poe-modal-textarea {
+  background: #fbf3e2;
+  color: #2a1712;
+  caret-color: #9b111e;
+}
+
+.poe-mode-light .poe-modal-textarea::placeholder {
+  color: rgba(98, 66, 48, 0.45);
 }
 
 .poe-modal-footer {
   color: #f3dfbd;
-  background:
-    linear-gradient(180deg, rgba(24, 14, 12, 0.92), rgba(16, 10, 9, 0.96));
-  border-color: rgba(214, 90, 47, 0.28);
+  background: linear-gradient(180deg, rgba(24, 15, 13, 0.94), rgba(16, 10, 9, 0.98));
+  border-color: rgba(214, 90, 47, 0.26);
 }
 
 .poe-mode-light .poe-modal-footer {
   color: #2a1712;
-  background:
-    linear-gradient(180deg, rgba(234, 208, 169, 0.82), rgba(211, 177, 130, 0.82));
-  border-color: rgba(126, 28, 26, 0.24);
+  background: linear-gradient(180deg, rgba(238, 216, 180, 0.88), rgba(224, 196, 154, 0.88));
+  border-color: rgba(126, 28, 26, 0.22);
 }
 
 .poe-modal-list-card {
   color: #f0dfc4;
   background:
-    linear-gradient(180deg, rgba(255, 214, 153, 0.045), rgba(0, 0, 0, 0.05)),
+    linear-gradient(180deg, rgba(255, 214, 153, 0.04), rgba(0, 0, 0, 0.05)),
     rgba(31, 22, 18, 0.9);
   border-color: rgba(214, 90, 47, 0.24);
 }
@@ -638,35 +977,65 @@ body {
 .poe-mode-light .poe-modal-list-card {
   color: #2a1712;
   background:
-    linear-gradient(180deg, rgba(255, 248, 228, 0.82), rgba(219, 185, 137, 0.26)),
-    rgba(244, 225, 194, 0.92);
+    linear-gradient(180deg, rgba(255, 250, 236, 0.88), rgba(228, 198, 154, 0.24)),
+    rgba(248, 233, 206, 0.94);
   border-color: rgba(126, 28, 26, 0.22);
 }
 
 .poe-modal-secondary-btn {
-  color: rgba(243, 223, 189, 0.86);
-  background: rgba(154, 17, 30, 0.08);
-  border-color: rgba(214, 90, 47, 0.18);
+  color: rgba(243, 223, 189, 0.88);
+  background: rgba(154, 17, 30, 0.1);
+  border-color: rgba(214, 90, 47, 0.22);
 }
 
 .poe-modal-secondary-btn:hover,
 .poe-modal-secondary-btn-active {
   color: #fff2d2;
-  background: rgba(154, 17, 30, 0.22);
-  border-color: rgba(214, 90, 47, 0.38);
+  background: rgba(154, 17, 30, 0.26);
+  border-color: rgba(214, 90, 47, 0.44);
 }
 
 .poe-mode-light .poe-modal-secondary-btn {
   color: #4e2c21;
-  background: rgba(255, 247, 226, 0.52);
-  border-color: rgba(126, 28, 26, 0.16);
+  background: rgba(255, 248, 230, 0.72);
+  border-color: rgba(126, 28, 26, 0.2);
 }
 
 .poe-mode-light .poe-modal-secondary-btn:hover,
 .poe-mode-light .poe-modal-secondary-btn-active {
   color: #64161a;
-  background: rgba(154, 17, 30, 0.12);
-  border-color: rgba(126, 28, 26, 0.32);
+  background: rgba(154, 17, 30, 0.14);
+  border-color: rgba(126, 28, 26, 0.36);
+}
+
+.poe-modal-add-btn {
+  color: #f3c678;
+  border-color: rgba(214, 90, 47, 0.36);
+}
+
+.poe-modal-add-btn:hover {
+  background: rgba(154, 17, 30, 0.16);
+}
+
+.poe-mode-light .poe-modal-add-btn {
+  color: #7c1820;
+  border-color: rgba(154, 24, 32, 0.34);
+}
+
+.poe-mode-light .poe-modal-add-btn:hover {
+  background: rgba(154, 17, 30, 0.1);
+}
+
+.poe-modal-kbd {
+  color: #f3c678;
+  background: rgba(0, 0, 0, 0.34);
+  border: 1px solid rgba(214, 90, 47, 0.32);
+}
+
+.poe-mode-light .poe-modal-kbd {
+  color: #64161a;
+  background: rgba(255, 248, 232, 0.85);
+  border: 1px solid rgba(132, 34, 30, 0.28);
 }
 
 .poe-modal-empty {
@@ -679,65 +1048,55 @@ body {
 
 .poe-modal-input {
   color: #f0dfc4;
-  background: rgba(0, 0, 0, 0.22);
-  border: 1px solid rgba(214, 90, 47, 0.2);
+  background: rgba(0, 0, 0, 0.26);
+  border: 1px solid rgba(214, 90, 47, 0.26);
 }
 
 .poe-mode-light .poe-modal-input {
-  color: #2a1712 !important;
-  background: rgba(255, 247, 225, 0.68) !important;
-  border-color: rgba(126, 28, 26, 0.2) !important;
+  color: #2a1712;
+  background: rgba(255, 250, 236, 0.86);
+  border-color: rgba(126, 28, 26, 0.24);
 }
 
 .poe-modal-record-btn {
   color: #f1bd79;
-  background: rgba(154, 17, 30, 0.16);
-  border: 1px solid rgba(214, 90, 47, 0.22);
+  background: rgba(154, 17, 30, 0.18);
+  border: 1px solid rgba(214, 90, 47, 0.26);
 }
 
 .poe-modal-record-btn:hover,
 .poe-modal-record-btn-active {
   color: #fff2d2;
-  background: rgba(154, 17, 30, 0.28);
-  border-color: rgba(214, 90, 47, 0.38);
+  background: rgba(154, 17, 30, 0.32);
+  border-color: rgba(214, 90, 47, 0.44);
 }
 
 .poe-mode-light .poe-modal-record-btn {
   color: #64161a;
   background: rgba(154, 17, 30, 0.1);
-  border-color: rgba(126, 28, 26, 0.18);
+  border-color: rgba(126, 28, 26, 0.22);
 }
 
 .poe-mode-light .poe-modal-record-btn:hover,
 .poe-mode-light .poe-modal-record-btn-active {
   color: #4b0f13;
-  background: rgba(154, 17, 30, 0.18);
-  border-color: rgba(126, 28, 26, 0.32);
+  background: rgba(154, 17, 30, 0.2);
+  border-color: rgba(126, 28, 26, 0.36);
 }
 
-.poe-modal textarea,
-.poe-modal input:not(.poe-modal-input) {
-  background-color: rgba(0, 0, 0, 0.18) !important;
-  border-color: rgba(214, 90, 47, 0.24) !important;
-  color: #e6d8bd !important;
-}
-
-.poe-mode-light .poe-modal textarea:not(.poe-modal-input) {
-  background-color: rgba(32, 15, 12, 0.92) !important;
-  border-color: rgba(126, 28, 26, 0.28) !important;
-  color: #f3dfbd !important;
-}
-
+/* ============================================================
+   Standalone Image Viewer
+   ============================================================ */
 .poe-viewer {
   background:
-    radial-gradient(circle at 50% 20%, rgba(154, 17, 30, 0.16), transparent 32%),
-    linear-gradient(145deg, #090706, #1a1110 55%, #050404);
+    radial-gradient(circle at 50% 20%, rgba(154, 17, 30, 0.14), transparent 36%),
+    linear-gradient(155deg, #090706, #181110 55%, #050404);
   color: #e6d8bd;
 }
 
 .poe-viewer-toolbar {
-  background: rgba(18, 13, 11, 0.86);
-  border-color: rgba(214, 90, 47, 0.24);
+  background: rgba(18, 13, 11, 0.92);
+  border-color: rgba(214, 90, 47, 0.26);
   backdrop-filter: blur(14px);
 }
 
@@ -745,12 +1104,21 @@ body {
 .poe-viewer-btn {
   color: #f0c071;
   background: rgba(154, 17, 30, 0.18);
-  border-color: rgba(214, 90, 47, 0.28);
+  border: 1px solid rgba(214, 90, 47, 0.28);
+}
+
+.poe-viewer-btn-active {
+  color: #fff0c5;
+  background:
+    linear-gradient(180deg, rgba(214, 90, 47, 0.36), rgba(154, 17, 30, 0.32)),
+    rgba(154, 17, 30, 0.2);
+  border-color: rgba(214, 90, 47, 0.58);
+  box-shadow: 0 0 14px rgba(214, 90, 47, 0.2);
 }
 
 .poe-viewer-btn:hover {
   color: #fff0c5;
-  background: rgba(154, 17, 30, 0.3);
+  background: rgba(154, 17, 30, 0.32);
 }
 
 .poe-viewer-close {
@@ -759,17 +1127,25 @@ body {
 
 .poe-viewer-close:hover {
   color: #fff0c5;
-  background: rgba(154, 17, 30, 0.78);
+  background: rgba(154, 17, 30, 0.8);
 }
 
 .poe-viewer-stage {
-  background:
-    linear-gradient(90deg, rgba(150, 31, 35, 0.08) 1px, transparent 1px),
-    linear-gradient(180deg, rgba(214, 90, 47, 0.05) 1px, transparent 1px),
-    radial-gradient(circle at center, rgba(0, 0, 0, 0.18), rgba(0, 0, 0, 0.58));
-  background-size: 24px 24px, 24px 24px, auto;
+  background: radial-gradient(circle at center, rgba(20, 15, 13, 0.3), rgba(0, 0, 0, 0.65));
 }
 
+.poe-map-reveal {
+  filter:
+    brightness(1.45)
+    contrast(1.85)
+    saturate(1.5)
+    drop-shadow(0 0 6px rgba(214, 90, 47, 0.22));
+  mix-blend-mode: screen;
+}
+
+/* ============================================================
+   Scrollbars & Range Thumb
+   ============================================================ */
 .no-scrollbar::-webkit-scrollbar {
   display: none;
 }
@@ -778,9 +1154,8 @@ body {
   scrollbar-width: none;
 }
 
-/* Custom Scrollbar */
 .custom-scrollbar::-webkit-scrollbar {
-  width: 6px;
+  width: 5px;
 }
 
 .custom-scrollbar::-webkit-scrollbar-track {
@@ -788,29 +1163,20 @@ body {
 }
 
 .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(154, 17, 30, 0.48);
+  background: rgba(168, 42, 42, 0.45);
   border-radius: 10px;
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb {
-  background: rgba(154, 17, 30, 0.38);
-}
-
 .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(214, 90, 47, 0.56);
+  background: rgba(216, 92, 47, 0.65);
 }
 
-.dark .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-  background: rgba(214, 90, 47, 0.48);
-}
-
-/* Range slider thumb styling */
 input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
-  width: 16px;
-  height: 16px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
   background: #9b111e;
   cursor: pointer;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.28);
 }

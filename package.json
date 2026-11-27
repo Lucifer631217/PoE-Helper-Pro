@@ -1,7 +1,7 @@
 {
   "name": "poe-helper-web",
   "private": true,
-  "version": "3.0.0",
+  "version": "1.0.0+20261127",
   "description": "Path of Exile 開荒助手 Pro",
   "author": "Lucifer",
   "repository": {
@@ -61,11 +61,16 @@
       "target": [
         "nsis",
         "portable"
-      ]
+      ],
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
+      "allowToChangeInstallationDirectory": true,
+      "artifactName": "${name}-setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "${name}-portable-${version}.${ext}"
     }
   }
 }
